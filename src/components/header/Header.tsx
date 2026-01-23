@@ -77,8 +77,8 @@ const Header: React.FC = observer(() => {
     { label: 'Контакты', url: '/contacts' },
   ];
 
-  if(pathname === '/auth') return null;
-  
+  // if(pathname === '/auth') return null;
+
   return (
     <HeaderContainer>
       <HeaderContent>

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-input/mask": "^2.0.4",
     "axios": "^1.13.2",
     "mobx": "^6.15.0",
     "mobx-react-lite": "^4.1.1",

@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SignIn } from '@/models/Auth';
 import { DefaultInput } from '@/components/inputs';
 import { Form, SubmitButton, SwitchFormText, SwitchLink } from '../../page.styles';
@@ -18,19 +18,34 @@ const SingInForm: React.FC<LoginFormProps> = ({
   onSubmit,
   onSwitchToSignUp 
 }) => {
+    const [isFormValid, setIsFormValid] = useState(false);
+  
+    useEffect(() => {
+      const isValid = Boolean(
+        data.email?.trim() &&
+        data.password?.trim()
+      );
+      
+      setIsFormValid(isValid);
+    }, [data]);
+  
   return (
     <Form onSubmit={(e: any) => e.preventDefault()}>
       <DefaultInput
         label="Email"
         type="email"
         value={data.email}
+        validateEmail={true}
+        required={true}
         onChange={(value) => onChange('email', value)}
         placeholder="example@email.com"
         fullWidth
       />
+
       <DefaultInput
         label="Пароль"
         type="password"
+        required={true}
         value={data.password}
         onChange={(value) => onChange('password', value)}
         placeholder="Введите пароль"
@@ -42,6 +57,7 @@ const SingInForm: React.FC<LoginFormProps> = ({
         variant="primary"
         onClick={onSubmit}
         fullWidth
+        disabled={!isFormValid}
       >
         Войти
       </SubmitButton>
