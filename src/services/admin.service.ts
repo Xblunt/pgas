@@ -15,12 +15,12 @@ class AdminService extends HttpClient {
   }
 
   async getUsers(params?: any): Promise<User[]> {
-    const users = await this.get<User[]>('/admin/users', { params });
+    const users = await this.get<User[]>("/admin/users", { params });
     return users;
   }
 
   async createUser(userData: { name: string; email: string; password: string; role: string }): Promise<User> {
-    const user = await this.post<User>('/admin/users', userData);
+    const user = await this.post<User>("/admin/users", userData);
     return user;
   }
 

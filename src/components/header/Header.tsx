@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   HeaderContainer,
   HeaderContent,
@@ -22,11 +22,10 @@ import {
   DropdownSubtitle,
   DropdownButtons,
   ButtonWrapper,
-} from './Header.styles';
-import { observer } from 'mobx-react-lite';
-import DefaultButton from '../buttons/DefaultButton';
-import { usePathname } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+} from "./Header.styles";
+import { observer } from "mobx-react-lite";
+import DefaultButton from "../buttons/DefaultButton";
+import { usePathname, useRouter } from "next/navigation";
 
 const Header: React.FC = observer(() => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -41,14 +40,14 @@ const Header: React.FC = observer(() => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleLogoClick = () => {
-    router.push('/');
+    router.push("/");
   };
 
   const handleTabClick = (url: string) => {
@@ -59,102 +58,78 @@ const Header: React.FC = observer(() => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleLogin = () => {
+  const handleProfile = () => {
     setIsDropdownOpen(false);
-    router.push('/auth/login');
+    router.push("/profile");
   };
 
-  const handleRegister = () => {
+  const handleLogout = () => {
     setIsDropdownOpen(false);
-    router.push('/auth/register');
+    router.push("/auth");
   };
 
   const tabs = [
-    { label: 'Каталог', url: '/auth' },
-    { label: 'Заказы', url: '/orders' },
-    { label: 'Избранное', url: '/favorites' },
-    { label: 'О нас', url: '/about' },
-    { label: 'Контакты', url: '/contacts' },
+    { label: "Каталог", url: "/auth" },
+    { label: "Заказы", url: "/orders" },
+    { label: "Избранное", url: "/favorites" },
+    { label: "О нас", url: "/about" },
+    { label: "Контакты", url: "/contacts" },
   ];
 
-  // if(pathname === '/auth') return null;
-
   return (
-    <HeaderContainer>
-      <HeaderContent>
-        <LogoContainer onClick={handleLogoClick}>
-          <LogoImage 
-            src="/vstu-logo.svg" 
-            alt="VSTU Logo" 
-          />
-        </LogoContainer>
+      <HeaderContainer>
+        <HeaderContent>
+          <LogoContainer onClick={handleLogoClick}>
+            <LogoImage src="/vstu-logo.svg" alt="VSTU Logo" />
+          </LogoContainer>
 
-        <TabsContainer>
-          <TabsWrapper>
-             {tabs.map((tab, index) => (
-              <React.Fragment key={index}>
-                <TabItem 
-                  $isActive={pathname === tab.url}
-                  onClick={() => handleTabClick(tab.url)}
-                >
-                  <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
-                  {pathname === tab.url && <TabIndicator />}
-                </TabItem>
-                
-                {index < tabs.length - 1 && <TabDivider />}
-              </React.Fragment>
-            ))}
-          </TabsWrapper>
-        </TabsContainer>
+          <TabsContainer>
+            <TabsWrapper>
+              {tabs.map((tab, index) => (
+                  <React.Fragment key={index}>
+                    <TabItem $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
+                      <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
+                      {pathname === tab.url && <TabIndicator />}
+                    </TabItem>
 
-        <ProfileContainer ref={dropdownRef}>
-          <ProfileButton 
-            onClick={handleProfileClick}
-            $isOpen={isDropdownOpen}
-          >
-            <ProfileImageContainer>
-              <ProfileImage
-                src="/profile.jpg"
-                alt="Profile"
-              />
-            </ProfileImageContainer>
-          </ProfileButton>
+                    {index < tabs.length - 1 && <TabDivider />}
+                  </React.Fragment>
+              ))}
+            </TabsWrapper>
+          </TabsContainer>
 
-          {isDropdownOpen && (
-            <DropdownMenu>
-              <DropdownHeader>
-                <DropdownTitle>Аккаунт</DropdownTitle>
-                <DropdownSubtitle>Войдите в систему</DropdownSubtitle>
-              </DropdownHeader>
-              
-              <DropdownButtons>
-                <ButtonWrapper>
-                  <DefaultButton
-                    variant="primary"
-                    size="medium"
-                    onClick={handleLogin}
-                    fullWidth
-                  >
-                    Личный кабинет
-                  </DefaultButton>
-                </ButtonWrapper>
-                
-                <ButtonWrapper>
-                  <DefaultButton
-                    variant="outline"
-                    size="medium"
-                    onClick={handleRegister}
-                    fullWidth
-                  >
-                    Выход
-                  </DefaultButton>
-                </ButtonWrapper>
-              </DropdownButtons>
-            </DropdownMenu>
-          )}
-        </ProfileContainer>
-      </HeaderContent>
-    </HeaderContainer>
+          <ProfileContainer ref={dropdownRef}>
+            <ProfileButton onClick={handleProfileClick} $isOpen={isDropdownOpen}>
+              <ProfileImageContainer>
+                <ProfileImage src="/profile.jpg" alt="Profile" />
+              </ProfileImageContainer>
+            </ProfileButton>
+
+            {isDropdownOpen && (
+                <DropdownMenu>
+                  <DropdownHeader>
+                    <DropdownTitle>Аккаунт</DropdownTitle>
+                    <DropdownSubtitle>Управление профилем</DropdownSubtitle>
+                  </DropdownHeader>
+
+                  <DropdownButtons>
+                    <ButtonWrapper>
+                      <DefaultButton variant="primary" size="medium" onClick={handleProfile} fullWidth>
+                        Личный кабинет
+                      </DefaultButton>
+                    </ButtonWrapper>
+
+                    <ButtonWrapper>
+                      <DefaultButton variant="outline" size="medium" onClick={handleLogout} fullWidth>
+                        Выход
+                      </DefaultButton>
+                    </ButtonWrapper>
+                  </DropdownButtons>
+                </DropdownMenu>
+            )}
+          </ProfileContainer>
+        </HeaderContent>
+      </HeaderContainer>
   );
 });
 
