@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { DefaultButton } from "@/components/buttons";
 
 export const AccordionGroup = styled.div`
-  border: 2px solid var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 12px;
   overflow: hidden;
   background: var(--color-white);
@@ -21,6 +21,11 @@ export const GroupHeader = styled.div`
   &:hover {
     background: rgba(38, 49, 69, 0.04);
   }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    gap: 10px;
+  }
 `;
 
 export const GroupHeaderText = styled.div`
@@ -29,6 +34,10 @@ export const GroupHeaderText = styled.div`
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+
+  @media (max-width: 768px) {
+    gap: 4px;
+  }
 `;
 
 export const HeaderTitle = styled.div`
@@ -39,6 +48,10 @@ export const HeaderTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 export const HeaderSubtitle = styled.div`
@@ -49,6 +62,10 @@ export const HeaderSubtitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
 `;
 
 export const GroupActions = styled.div`
@@ -56,6 +73,10 @@ export const GroupActions = styled.div`
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    gap: 6px;
+  }
 `;
 
 export const SquareButton = styled(DefaultButton)`
@@ -64,6 +85,13 @@ export const SquareButton = styled(DefaultButton)`
   height: 40px;
   padding: 0;
   border-radius: 8px;
+
+  @media (max-width: 768px) {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 `;
 
 export const CountBox = styled.div`
@@ -79,6 +107,13 @@ export const CountBox = styled.div`
   font-size: 16px;
   font-weight: 700;
   color: var(--color-primary);
+
+  @media (max-width: 768px) {
+    width: 40px;
+    min-width: 40px;
+    height: 36px;
+    font-size: 14px;
+  }
 `;
 
 export const ChevronButton = styled.button`
@@ -98,14 +133,30 @@ export const ChevronButton = styled.button`
     opacity: 0.8;
     background: rgba(38, 49, 69, 0.06);
   }
+
+  @media (max-width: 768px) {
+    width: 40px;
+    min-width: 40px;
+    height: 36px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
 `;
 
 export const GroupBody = styled.div`
-  border-top: 2px solid var(--color-primary);
+  border-top: 1px solid var(--color-primary);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+    gap: 8px;
+  }
 `;
 
 export const AchievementRow = styled.div`
@@ -115,12 +166,17 @@ export const AchievementRow = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+    gap: 10px;
+  }
 `;
 
 export const AchievementIndex = styled.div`
   width: 44px;
   height: 44px;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-secondary);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -130,6 +186,27 @@ export const AchievementIndex = styled.div`
   font-weight: 700;
   color: var(--color-primary);
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+`;
+
+export const AchievementContent = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 `;
 
 export const AchievementMain = styled.div`
@@ -138,6 +215,10 @@ export const AchievementMain = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+  @media (max-width: 768px) {
+    gap: 4px;
+  }
 `;
 
 export const AchievementTitle = styled.div`
@@ -148,6 +229,10 @@ export const AchievementTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 export const AchievementSubtitle = styled.div`
@@ -158,17 +243,35 @@ export const AchievementSubtitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
 `;
 
 export const AchievementRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 `;
 
 export const PointsChip = styled.div`
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-secondary);
   border-radius: 10px;
   height: 32px;
   padding: 0 10px;
@@ -179,10 +282,25 @@ export const PointsChip = styled.div`
   font-size: 14px;
   font-weight: 700;
   color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    height: 28px;
+    font-size: 12px;
+    padding: 0 8px;
+  }
+`;
+
+export const TagsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 `;
 
 export const TagChip = styled.div`
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-secondary);
   border-radius: 10px;
   height: 32px;
   padding: 0 10px;
@@ -193,10 +311,35 @@ export const TagChip = styled.div`
   font-size: 14px;
   font-weight: 500;
   color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    height: 28px;
+    font-size: 12px;
+    padding: 0 8px;
+  }
 `;
 
 export const IconActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    margin-left: auto;
+    flex-shrink: 0;
+    
+    button {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
 `;

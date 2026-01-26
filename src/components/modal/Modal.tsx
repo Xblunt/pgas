@@ -10,21 +10,13 @@ import {
   ModalButton
 } from './Modal.styles';
 import { IconButton, DefaultButton } from '../buttons';
-
-export interface ModalButtonProps {
-  text: string;
-  onClick: () => void;
-  variant?: 'primary' | 'outline';
-  disabled?: boolean;
-}
+import { ButtonAction, ButtonVariant } from '@/models/types';
 
 export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   title?: string;
   children: React.ReactNode;
-  buttons?: ModalButtonProps[];
-  showCloseButton?: boolean;
+  buttons?: ButtonAction[];
   fullWidth?: boolean;
   maxWidth?: number;
   className?: string;
@@ -38,10 +30,8 @@ const Modal: React.FC<ModalProps> = (props) => {
     </svg>
   `;
 
-  if (!props.isOpen) return null;
-
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget &&  props.onClose) {
       props.onClose();
     }
   };
@@ -53,10 +43,10 @@ const Modal: React.FC<ModalProps> = (props) => {
         $maxWidth={props.maxWidth}
         className={props.className}
       >
-        {(props.title || props.showCloseButton) && (
+        {(props.title || props.onClose) && (
           <ModalHeader>
             {props.title && <ModalTitle>{props.title}</ModalTitle>}
-            {props.showCloseButton && (
+            {props.onClose && (
               <ModalCloseButton>
                 <IconButton icon={closeIcon} onClick={props.onClose} size={24} />
               </ModalCloseButton>
@@ -73,7 +63,7 @@ const Modal: React.FC<ModalProps> = (props) => {
             {props.buttons.map((button, index) => (
               <ModalButton key={index}>
                 <DefaultButton
-                  variant={button.variant || 'primary'}
+                  variant={button.variant || ButtonVariant.PRIMARY}
                   onClick={button.onClick}
                   disabled={button.disabled}
                   fullWidth

@@ -1,16 +1,16 @@
 "use client";
 
 import React from "react";
-import { PageContainer, Title, Card, Text } from "./page.styles";
+import { Title, Card, Text } from "./page.styles";
 
 const AdminCategoryPage: React.FC = () => {
     return (
-        <PageContainer>
+        <div className="page">
             <Title>Категории</Title>
             <Card>
                 <Text>Страница в разработке</Text>
             </Card>
-        </PageContainer>
+        </div>
     );
 };
 

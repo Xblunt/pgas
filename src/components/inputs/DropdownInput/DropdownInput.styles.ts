@@ -31,7 +31,7 @@ export const DropdownContainer = styled.div<{
   width: ${props => props.$fullWidth ? '100%' : 'auto'};
   
   ${props => props.$hasError && css`
-    border: 2px solid var(--error);
+    border: 1px solid var(--error);
   `}
 `;
 
@@ -43,7 +43,8 @@ export const SelectedValue = styled.div<{
   font-size: 16px;
   padding: 12px 16px;
   padding-right: 40px;
-  border: 2px solid var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
   background: var(--color-white);
   color: ${props => props.$hasValue ? 'var(--color-primary)' : 'rgba(38, 48, 69, 0.5)'};
   cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
@@ -64,13 +65,22 @@ export const DropdownIcon = styled.div<{
   position: absolute;
   right: 16px;
   top: 50%;
-  transform: ${props => props.$isOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)'};
-  font-size: 12px;
+  transform: translateY(-50%);
   color: var(--color-primary);
   pointer-events: ${props => props.$disabled ? 'none' : 'auto'};
   cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.2s ease;
   opacity: ${props => props.$disabled ? 0.5 : 1};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s ease;
+    transform: ${props => props.$isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
+  }
 `;
 
 export const DropdownList = styled.div`
@@ -81,8 +91,8 @@ export const DropdownList = styled.div`
   max-height: 200px;
   overflow-y: auto;
   background: var(--color-white);
-  border: 2px solid var(--color-primary);
-  border-top: none;
+  border: 1px solid var(--color-primary);
+  border-radius: 0 0 6px 6px;
   z-index: 1000;
   margin-top: -2px;
 `;
@@ -100,6 +110,14 @@ export const DropdownItem = styled.div<{
   
   &:hover {
     background: rgba(38, 48, 69, 0.1);
+  }
+  
+  &:first-child {
+    border-radius: 0;
+  }
+  
+  &:last-child {
+    border-radius: 0 0 6px 6px;
   }
 `;
 

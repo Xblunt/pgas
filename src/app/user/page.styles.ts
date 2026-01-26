@@ -1,17 +1,7 @@
 import styled from "styled-components";
 
-export const UserPageContainer = styled.div`
-  padding: 120px 60px 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  @media (max-width: 768px) {
-    padding: 110px 20px 40px;
-  }
-`;
-
 export const SectionTitle = styled.h2`
-  margin: 18px 0 10px;
+  margin: 0 0 -10px 0;
   font-family: var(--fontfamily);
   font-size: 20px;
   font-weight: 700;
@@ -71,9 +61,7 @@ export const InfoSecondary = styled.div`
   text-overflow: ellipsis;
 `;
 
-export const AchievementsBlock = styled.div`
-  margin-top: 18px;
-`;
+export const AchievementsBlock = styled.div``;
 
 export const DividerSpace = styled.div`
   height: 14px;

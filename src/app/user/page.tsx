@@ -3,24 +3,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStores } from "@/hooks/useStores";
-import Modal from "@/components/modal";
-import {
-    UserPageContainer,
-    SectionTitle,
-    InfoCard,
-    RankBox,
-    InfoText,
-    InfoPrimary,
-    InfoSecondary,
-    AchievementsBlock,
-    DividerSpace,
-} from "./page.styles";
+import { SectionTitle, AchievementsBlock, DividerSpace } from "./page.styles";
 import { DropdownBlock } from "@/components/blocks";
-import type { DropdownBlockItem } from "@/components/blocks";
-import CreateAchievementForm, { AchievementFormState } from "./CreateAchievementForm";
+import DefaultBlock from "@/components/blocks/DefaultBlock/DefaultBlock";
+import { DropdownBlockItem } from "@/models/types";
+import CreateAchievementForm, { AchievementFormState } from "./CreateAchievementForm/CreateAchievementForm";
 
 type AchievementGroup = {
-    id: string;
+    uuid: string;
     title: string;
     subtitle: string;
     items: DropdownBlockItem[];
@@ -64,25 +54,25 @@ const calcActualPoints = (preliminary: number) => {
     return Math.max(0, Math.round(preliminary * 0.4));
 };
 
-const initialGroups: AchievementGroup[] = [
+export const initialGroups: AchievementGroup[] = [
     {
-        id: "g1",
+        uuid: "g1",
         title: "Статья",
         subtitle: "Публикации",
         items: [
-            { id: "a1", title: mockFio, subtitle: pickRandomText(), points: 7, tags: ["ВАК", "Без места"] },
-            { id: "a2", title: mockFio, subtitle: pickRandomText(), points: 5, tags: ["ВАК", "2 место"] },
-            { id: "a3", title: mockFio, subtitle: pickRandomText(), points: 6, tags: ["Scopus", "Без места"] },
+            { uuid: "a1", title: mockFio, subtitle: pickRandomText(), points: 7, tags: ["ВАК", "Без места"] },
+            { uuid: "a2", title: mockFio, subtitle: pickRandomText(), points: 5, tags: ["ВАК", "2 место"] },
+            { uuid: "a3", title: mockFio, subtitle: pickRandomText(), points: 6, tags: ["Scopus", "Без места"] },
         ],
     },
     {
-        id: "g2",
+        uuid: "g2",
         title: "Конференция",
         subtitle: "Участия и призовые места",
         items: [],
     },
     {
-        id: "g3",
+        uuid: "g3",
         title: "Общественная деятельность",
         subtitle: "Волонтерство и мероприятия",
         items: [],
@@ -121,9 +111,9 @@ const UserPage: React.FC = () => {
     const [editingItemId, setEditingItemId] = useState<string>("");
     const [form, setForm] = useState<AchievementFormState>(createEmptyForm(""));
 
-    useEffect(() => {
-        if (!authStore.token) router.push("/auth");
-    }, [authStore.token, router]);
+    // useEffect(() => {
+    //     if (!authStore.token) router.push("/auth");
+    // }, [authStore.token, router]);
 
     useEffect(() => {
         const preliminary = calcPreliminaryPoints(form.subcategory, form.place, form.participants);
@@ -145,31 +135,31 @@ const UserPage: React.FC = () => {
     const currentPrimary = mockFio;
     const currentSecondary = "Факультет ИТ, группа ИВТ-21";
 
-    const toggleGroup = (groupId: string) => {
-        setOpenGroupIds((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+    const toggleGroup = (groupUuid: string) => {
+        setOpenGroupIds((prev) => ({ ...prev, [groupUuid]: !prev[groupUuid] }));
     };
 
-    const openCreateModal = (groupId: string) => {
-        const group = groups.find((g) => g.id === groupId);
+    const openCreateModal = (groupUuid: string) => {
+        const group = groups.find((g) => g.uuid === groupUuid);
         if (!group) return;
 
         setModalMode("create");
-        setActiveGroupId(groupId);
+        setActiveGroupId(groupUuid);
         setEditingItemId("");
         setForm(createEmptyForm(group.title));
         setIsModalOpen(true);
     };
 
-    const openEditModal = (groupId: string, itemId: string) => {
-        const group = groups.find((g) => g.id === groupId);
+    const openEditModal = (groupUuid: string, itemUuid: string) => {
+        const group = groups.find((g) => g.uuid === groupUuid);
         if (!group) return;
 
-        const item = group.items.find((x) => x.id === itemId);
+        const item = group.items.find((x) => x.uuid === itemUuid);
         if (!item) return;
 
         setModalMode("edit");
-        setActiveGroupId(groupId);
-        setEditingItemId(itemId);
+        setActiveGroupId(groupUuid);
+        setEditingItemId(itemUuid);
 
         setForm({
             ...createEmptyForm(group.title),
@@ -216,7 +206,7 @@ const UserPage: React.FC = () => {
     };
 
     const saveAchievement = () => {
-        const group = groups.find((g) => g.id === activeGroupId);
+        const group = groups.find((g) => g.uuid === activeGroupId);
         if (!group) return;
 
         const subtitle = form.description.trim() ? form.description.trim() : pickRandomText();
@@ -224,7 +214,7 @@ const UserPage: React.FC = () => {
 
         if (modalMode === "create") {
             const newItem: DropdownBlockItem = {
-                id: `a${Date.now()}`,
+                uuid: `a${Date.now()}`,
                 title: mockFio,
                 subtitle,
                 points: Math.max(0, points),
@@ -232,7 +222,7 @@ const UserPage: React.FC = () => {
             };
 
             setGroups((prev) =>
-                prev.map((g) => (g.id === activeGroupId ? { ...g, items: [...g.items, newItem] } : g))
+                prev.map((g) => (g.uuid === activeGroupId ? { ...g, items: [...g.items, newItem] } : g))
             );
             setOpenGroupIds((prev) => ({ ...prev, [activeGroupId]: true }));
             setIsModalOpen(false);
@@ -242,11 +232,11 @@ const UserPage: React.FC = () => {
         if (modalMode === "edit" && editingItemId) {
             setGroups((prev) =>
                 prev.map((g) => {
-                    if (g.id !== activeGroupId) return g;
+                    if (g.uuid !== activeGroupId) return g;
                     return {
                         ...g,
                         items: g.items.map((it) =>
-                            it.id === editingItemId
+                            it.uuid === editingItemId
                                 ? { ...it, subtitle, points: Math.max(0, points), tags: tagsFromForm() }
                                 : it
                         ),
@@ -257,9 +247,9 @@ const UserPage: React.FC = () => {
         }
     };
 
-    const handleDelete = (groupId: string, itemId: string) => {
+    const handleDelete = (groupUuid: string, itemUuid: string) => {
         setGroups((prev) =>
-            prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((x) => x.id !== itemId) } : g))
+            prev.map((g) => (g.uuid === groupUuid ? { ...g, items: g.items.filter((x) => x.uuid !== itemUuid) } : g))
         );
     };
 
@@ -268,66 +258,41 @@ const UserPage: React.FC = () => {
     const modalTitle = modalMode === "create" ? "Добавить публикацию" : "Редактировать публикацию";
 
     return (
-        <UserPageContainer>
-            <SectionTitle>Лидер рейтинга:</SectionTitle>
-            <InfoCard>
-                <RankBox>{leaderRank}</RankBox>
-                <InfoText>
-                    <InfoPrimary>{leaderPrimary}</InfoPrimary>
-                    <InfoSecondary>{leaderSecondary}</InfoSecondary>
-                </InfoText>
-            </InfoCard>
-
-            <SectionTitle>Текущее место в рейтинге:</SectionTitle>
-            <InfoCard>
-                <RankBox>{currentRank}</RankBox>
-                <InfoText>
-                    <InfoPrimary>{currentPrimary}</InfoPrimary>
-                    <InfoSecondary>{currentSecondary}</InfoSecondary>
-                </InfoText>
-            </InfoCard>
+        <div className="page">
+            <DefaultBlock title={"Лидер рейтинга:"} number={leaderRank} primaryText={leaderPrimary} secondaryText={leaderSecondary} />
+            <DefaultBlock title={"Текущее место в рейтинге:"} number={currentRank} primaryText={currentPrimary} secondaryText={currentSecondary}/>
 
             <SectionTitle>Ваши достижения</SectionTitle>
 
             <AchievementsBlock>
                 {orderedGroups.map((group, idx) => (
-                    <React.Fragment key={group.id}>
+                    <React.Fragment key={group.uuid}>
                         <DropdownBlock
                             title={group.title}
                             subtitle={group.subtitle}
-                            isOpen={!!openGroupIds[group.id]}
+                            isOpen={!!openGroupIds[group.uuid]}
                             items={group.items}
-                            onToggle={() => toggleGroup(group.id)}
-                            onAdd={() => openCreateModal(group.id)}
-                            onEdit={(id) => openEditModal(group.id, id)}
-                            onDelete={(id) => handleDelete(group.id, id)}
+                            onToggle={() => toggleGroup(group.uuid)}
+                            onAdd={() => openCreateModal(group.uuid)}
+                            onEdit={(uuid) => openEditModal(group.uuid, uuid)}
+                            onDelete={(uuid) => handleDelete(group.uuid, uuid)}
                         />
                         {idx < orderedGroups.length - 1 && <DividerSpace />}
                     </React.Fragment>
                 ))}
             </AchievementsBlock>
 
-            <Modal
-                isOpen={isModalOpen}
-                onClose={closeModal}
-                title={modalTitle}
-                showCloseButton
-                fullWidth
-                maxWidth={640}
-                buttons={[
-                    { text: "Закрыть", variant: "outline", onClick: closeModal },
-                    { text: "Сохранить", variant: "primary", onClick: saveAchievement },
-                ]}
-            >
-                <CreateAchievementForm
+            {isModalOpen && <CreateAchievementForm
                     value={form}
                     onChange={handleFormChange}
                     categoryDisabled
                     preliminaryDisabled
                     actualDisabled
-                />
-            </Modal>
-        </UserPageContainer>
+                    onSave={saveAchievement}
+                    onClose={closeModal}
+                    title={modalTitle}
+            />}
+        </div>
     );
 };
 

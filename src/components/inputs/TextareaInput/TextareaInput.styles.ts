@@ -6,6 +6,7 @@ export const TextAreaWrapper = styled.div<{
   display: flex;
   flex-direction: column;
   gap: 4px;
+  border: 12px;
   
   ${props => props.$fullWidth && css`
     width: 100%;
@@ -28,7 +29,7 @@ export const StyledTextArea = styled.textarea<{
   font-family: var(--fontfamily);
   font-size: 16px;
   padding: 12px 16px;
-  border: 2px solid;
+  border: 1px solid;
   border-color: ${props => props.$hasError ? 'var(--error)' : 'var(--color-primary)'};
   border-radius: 6px;
   outline: none;

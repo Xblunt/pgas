@@ -1,12 +1,21 @@
 import { DefaultButton } from '@/components/buttons';
 import styled from 'styled-components';
 
-export const AuthContainer = styled.div`
+interface AuthContainerProps {
+  $isSignUp?: boolean;
+}
+
+export const AuthContainer = styled.div<AuthContainerProps>`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 100px;
+  padding: ${props => props.$isSignUp ? '110px 40px 40px' : '110px'};
+  
+  @media (max-width: 768px) {
+    padding: ${props => props.$isSignUp ? '40px 20px 40px' : '110px 20px 40px'};
+    align-items: flex-start;
+  }
 `;
 
 export const AuthCard = styled.div`
@@ -17,6 +26,12 @@ export const AuthCard = styled.div`
   width: 100%;
   max-width: 550px;
   position: relative;
+  
+  @media (max-width: 768px) {
+    padding: 32px 20px;
+    border-radius: 10px;
+    margin-top: 40px;
+  }
 `;
 
 export const IconContainer = styled.div`
@@ -33,12 +48,23 @@ export const IconContainer = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 10;
+  
+  @media (max-width: 768px) {
+    width: 80px;
+    height: 80px;
+    top: -40px;
+  }
 `;
 
 export const AuthIcon = styled.img`
   width: 60px;
   height: 60px;
   object-fit: contain;
+  
+  @media (max-width: 768px) {
+    width: 48px;
+    height: 48px;
+  }
 `;
 
 export const SystemTitle = styled.h2`
@@ -63,6 +89,16 @@ export const SystemTitle = styled.h2`
     background-color: var(--color-secondary);
     border-radius: 2px;
   }
+  
+  @media (max-width: 768px) {
+    font-size: 20px;
+    padding-bottom: 16px;
+    margin-bottom: 6px;
+    
+    &::after {
+      width: 280px;
+    }
+  }
 `;
 
 export const Title = styled.h1`
@@ -72,6 +108,11 @@ export const Title = styled.h1`
   color: var(--color-primary);
   text-align: center;
   margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
 `;
 
 export const Form = styled.form`
@@ -79,6 +120,11 @@ export const Form = styled.form`
   flex-direction: column;
   gap: 20px;
   margin-top: 40px;
+  
+  @media (max-width: 768px) {
+    gap: 16px;
+    margin-top: 32px;
+  }
 `;
 
 export const SubmitButton = styled(DefaultButton)`
@@ -91,6 +137,12 @@ export const SwitchFormText = styled.p`
   color: var(--color-primary);
   text-align: center;
   margin-top: 20px;
+  
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-top: 16px;
+    line-height: 1.4;
+  }
 `;
 
 export const SwitchLink = styled.span`

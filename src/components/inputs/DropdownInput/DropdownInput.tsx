@@ -10,6 +10,18 @@ import {
   DropdownItem 
 } from './DropdownInput.styles';
 
+const chevronUpIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 14L12 8L18 14" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+const chevronDownIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 10L12 16L18 10" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
 export interface DropdownOption {
   value: string | number;
   label: string;
@@ -110,7 +122,11 @@ const DropdownInput: React.FC<DropdownInputProps> = (props) => {
           $isOpen={isOpen}
           $disabled={!!props.disabled}
         >
-          ▼
+          <span
+            dangerouslySetInnerHTML={{
+              __html: isOpen ? chevronUpIcon : chevronDownIcon,
+            }}
+          />
         </DropdownIcon>
         {isOpen && (
           <DropdownList>

@@ -5,14 +5,14 @@ export interface IconButtonProps {
   icon: string;
   size?: number;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: any) => void;
   disabled?: boolean;
 }
 
 const IconButton: React.FC<IconButtonProps> = (props) => {
-  const handleClick = () => {
+  const handleClick = (e: any) => {
     if (props.disabled || !props.onClick) return;
-    props.onClick();
+    props.onClick(e);
   };
 
   return (

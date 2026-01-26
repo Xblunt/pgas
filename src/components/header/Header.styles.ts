@@ -17,7 +17,7 @@ export const HeaderContent = styled.div`
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  padding: 0 60px;
+  padding: 0 30px;
   margin: 0 auto;
   gap: 32px;
 `;
@@ -63,7 +63,7 @@ export const TabItem = styled.div<{ $isActive: boolean }>`
   background: ${props => props.$isActive ? 'var(--color-primary)' : 'transparent'};
 
   &:hover {
-    background:var(--color-primary);
+    background: var(--color-primary);
   }
 `;
 
@@ -83,9 +83,9 @@ export const TabDivider = styled.div`
   width: 2px;
   height: 24px;
   background-color: var(--color-primary);
-  opacity: 0.3; 
+  opacity: 0.3;
   align-self: center;
-  margin: 0 -2px; 
+  margin: 0 -2px;
 `;
 
 export const TabIndicator = styled.div`
@@ -102,6 +102,9 @@ export const TabIndicator = styled.div`
 export const ProfileContainer = styled.div`
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  width: 60px;
 `;
 
 export const ProfileButton = styled.div<{ $isOpen: boolean }>`
@@ -113,6 +116,8 @@ export const ProfileButton = styled.div<{ $isOpen: boolean }>`
   cursor: pointer;
   border-radius: 12px;
   transition: all 0.2s ease;
+  position: relative;
+  right: 0;
 `;
 
 export const ProfileImageContainer = styled.div`
@@ -131,7 +136,7 @@ export const ProfileImage = styled.img`
 
 export const DropdownMenu = styled.div`
   position: absolute;
-  top: calc(100% + 20px);
+  top: calc(100% + 10px);
   right: 0;
   background: var(--color-white);
   border: 1px solid var(--color-primary);

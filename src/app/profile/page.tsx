@@ -3,16 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { DefaultInput } from "@/components/inputs";
 import { CreateUser } from "@/models/User";
-import {
-    ActionButton,
-    Card,
-    FooterHint,
-    FormGrid,
-    ProfilePageContainer,
-    Toolbar,
-    ToolbarActions,
-    ToolbarTitle,
-} from "./page.styles";
+import { Card, FormGrid } from "./page.styles";
+import Toolbar from "@/components/toolbar/Toolbar";
+import { ButtonVariant } from "@/models/types";
 
 const STORAGE_KEY = "pgas_profile";
 
@@ -95,35 +88,38 @@ const ProfilePage: React.FC = () => {
 
     const disabled = !isEditMode;
 
+    const toolbarButtons = useMemo(() => {
+        if (isEditMode) {
+            return [
+                {
+                    text: "Отменить",
+                    variant: ButtonVariant.OUTLINE,
+                    onClick: handleCancel,
+                },
+                {
+                    text: "Сохранить",
+                    variant: ButtonVariant.PRIMARY,
+                    onClick: handleSave,
+                    disabled: !hasRequiredFilled,
+                },
+            ];
+        } else {
+            return [
+                {
+                    text: "Редактировать",
+                    variant: ButtonVariant.PRIMARY,
+                    onClick: handleEdit,
+                },
+            ];
+        }
+    }, [isEditMode, hasRequiredFilled]);
+
     return (
-        <ProfilePageContainer>
-            <Toolbar>
-                <ToolbarTitle>Личный кабинет</ToolbarTitle>
-
-                <ToolbarActions>
-                    {isEditMode && (
-                        <ActionButton variant="outline" size="medium" onClick={handleCancel}>
-                            Отменить
-                        </ActionButton>
-                    )}
-
-                    {!isEditMode ? (
-                        <ActionButton variant="primary" size="medium" onClick={handleEdit}>
-                            Редактировать
-                        </ActionButton>
-                    ) : (
-                        <ActionButton
-                            variant="primary"
-                            size="medium"
-                            onClick={handleSave}
-                            disabled={!hasRequiredFilled}
-                        >
-                            Сохранить
-                        </ActionButton>
-                    )}
-                </ToolbarActions>
-            </Toolbar>
-
+        <div className="page">
+            <Toolbar 
+                title="Личный кабинет" 
+                buttons={toolbarButtons}
+            />
             <Card>
                 <FormGrid>
                     <DefaultInput
@@ -213,7 +209,7 @@ const ProfilePage: React.FC = () => {
                 </FormGrid>
 
             </Card>
-        </ProfilePageContainer>
+        </div>
     );
 };
 

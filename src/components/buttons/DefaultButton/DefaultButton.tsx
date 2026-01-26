@@ -1,8 +1,6 @@
 import React from "react";
 import { StyledButton } from "./DefaultButton.styles";
-
-type ButtonVariant = "primary" | "outline";
-type ButtonSize = "small" | "medium";
+import { ButtonSize, ButtonType, ButtonVariant } from "@/models/types";
 
 export interface DefaultButtonProps {
   variant?: ButtonVariant;
@@ -12,7 +10,7 @@ export interface DefaultButtonProps {
   className?: string;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
-  type?: "button" | "submit" | "reset";
+  type?: ButtonType;
 }
 
 const DefaultButton: React.FC<DefaultButtonProps> = (props) => {
@@ -23,13 +21,13 @@ const DefaultButton: React.FC<DefaultButtonProps> = (props) => {
 
   return (
       <StyledButton
-          $variant={props.variant || "primary"}
-          $size={props.size || "medium"}
+          $variant={props.variant || ButtonVariant.PRIMARY}
+          $size={props.size || ButtonSize.MEDIUM}
           $fullWidth={!!props.fullWidth}
           className={props.className}
           onClick={handleClick}
           disabled={props.disabled}
-          type={props.type || "button"}
+          type={props.type || ButtonType.BUTTON}
       >
         {props.children}
       </StyledButton>

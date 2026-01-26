@@ -66,7 +66,7 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-      <AuthContainer>
+      <AuthContainer $isSignUp={isSignUp}>
         <AuthCard>
           <IconContainer>
             <AuthIcon src="/vstu-logo.svg" alt="Логотип" />

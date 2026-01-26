@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { SignIn } from "@/models/Auth";
 import { DefaultInput } from "@/components/inputs";
 import { Form, SubmitButton, SwitchFormText, SwitchLink } from "../../page.styles";
+import { ButtonVariant } from "@/models/types";
 
 interface LoginFormProps {
     data: SignIn;
@@ -12,28 +13,23 @@ interface LoginFormProps {
     onSwitchToSignUp: () => void;
 }
 
-const SingInForm: React.FC<LoginFormProps> = ({
-                                                  data,
-                                                  onChange,
-                                                  onSubmit,
-                                                  onSwitchToSignUp,
-                                              }) => {
+const SingInForm: React.FC<LoginFormProps> = (props) => {
     const [isFormValid, setIsFormValid] = useState(false);
 
     useEffect(() => {
-        const isValid = Boolean(data.email?.trim() && data.password?.trim());
+        const isValid = Boolean(props.data.email?.trim() && props.data.password?.trim());
         setIsFormValid(isValid);
-    }, [data]);
+    }, [props.data]);
 
     return (
         <Form onSubmit={(e: any) => e.preventDefault()}>
             <DefaultInput
                 label="Email"
                 type="email"
-                value={data.email}
+                value={props.data.email}
                 validateEmail={true}
                 required={true}
-                onChange={(value) => onChange("email", value)}
+                onChange={(value) => props.onChange("email", value)}
                 placeholder="student@gmail.com"
                 fullWidth
             />
@@ -42,20 +38,20 @@ const SingInForm: React.FC<LoginFormProps> = ({
                 label="Пароль"
                 type="password"
                 required={true}
-                value={data.password}
-                onChange={(value) => onChange("password", value)}
+                value={props.data.password}
+                onChange={(value) => props.onChange("password", value)}
                 placeholder="Введите пароль"
                 fullWidth
                 isPassword
             />
 
-            <SubmitButton variant="primary" onClick={onSubmit} fullWidth disabled={!isFormValid}>
+            <SubmitButton variant={ButtonVariant.PRIMARY} onClick={props.onSubmit} fullWidth disabled={!isFormValid}>
                 Войти
             </SubmitButton>
 
             <SwitchFormText>
                 Нет аккаунта?{" "}
-                <SwitchLink onClick={onSwitchToSignUp}>Зарегистрироваться</SwitchLink>
+                <SwitchLink onClick={props.onSwitchToSignUp}>Зарегистрироваться</SwitchLink>
             </SwitchFormText>
         </Form>
     );

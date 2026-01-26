@@ -1,15 +1,5 @@
 import styled from "styled-components";
 
-export const PageContainer = styled.div`
-  padding: 120px 60px 60px;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  @media (max-width: 768px) {
-    padding: 110px 20px 40px;
-  }
-`;
-
 export const Title = styled.h1`
   margin: 0 0 14px;
   font-family: var(--fontfamily);

@@ -21,26 +21,23 @@ import {
     PointsChip,
     TagChip,
     IconActions,
+    AchievementContent,
+    TagsContainer,
 } from "./DropdownBlock.styles";
 import { IconButton } from "@/components/buttons";
-
-export type DropdownBlockItem = {
-    id: string;
-    title: string;
-    subtitle: string;
-    points: number;
-    tags: string[];
-};
+import { ButtonSize, DropdownBlockItem } from "@/models/types";
 
 export interface DropdownBlockProps {
     title: string;
     subtitle: string;
     isOpen: boolean;
     items: DropdownBlockItem[];
-    onToggle: () => void;
-    onAdd: () => void;
-    onEdit: (id: string) => void;
-    onDelete: (id: string) => void;
+    onToggle?: () => void;
+    onAdd?: () => void;
+    onEdit?: (id: string) => void;
+    onDelete?: (id: string) => void;
+    readonly?: boolean;
+    onView?: (id: string) => void;
 }
 
 const chevronUpIcon = `
@@ -72,67 +69,101 @@ const trashIcon = `
 </svg>
 `;
 
+const menuIcon = `
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 6H20" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4 12H20" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4 18H20" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
 const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
     const count = props.items.length;
 
     const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (!props.onAdd) return;
         e.stopPropagation();
         props.onAdd();
     };
 
     const handleChevron = (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (!props.onToggle) return;
         e.stopPropagation();
+        props.onToggle();
+    };
+
+    const handleToggle = () => {
+        if (props.items.length <= 0 && !props.readonly && props.onAdd) {
+            props.onAdd();
+            return
+        }
+
+        if (!props.onToggle || props.items.length <= 0) return;
         props.onToggle();
     };
 
     return (
         <AccordionGroup>
-            <GroupHeader onClick={props.onToggle}>
+            <GroupHeader onClick={handleToggle}>
                 <GroupHeaderText>
                     <HeaderTitle>{props.title}</HeaderTitle>
                     <HeaderSubtitle>{props.subtitle}</HeaderSubtitle>
                 </GroupHeaderText>
 
+                <CountBox>{count}</CountBox>
+
                 <GroupActions>
-                    <SquareButton variant="outline" size="small" onClick={handleAdd}>
-                        +
-                    </SquareButton>
+                    {!props.readonly && (
+                        <SquareButton size={ButtonSize.SAMLL} onClick={handleAdd}>
+                            +
+                        </SquareButton>
+                    )}
 
-                    <CountBox>{count}</CountBox>
-
-                    <ChevronButton type="button" onClick={handleChevron}>
-            <span
-                dangerouslySetInnerHTML={{
-                    __html: props.isOpen ? chevronUpIcon : chevronDownIcon,
-                }}
-            />
-                    </ChevronButton>
+                    {props.items.length > 0 && (
+                        <ChevronButton type="button" onClick={handleChevron}>
+                            <span
+                                dangerouslySetInnerHTML={{
+                                    __html: props.isOpen ? chevronUpIcon : chevronDownIcon,
+                                }}
+                            />
+                        </ChevronButton>
+                    )}
                 </GroupActions>
             </GroupHeader>
 
             {props.isOpen && (
                 <GroupBody>
                     {props.items.map((item, index) => (
-                        <AchievementRow key={item.id}>
+                        <AchievementRow key={item.uuid}>
                             <AchievementIndex>{index + 1}</AchievementIndex>
 
-                            <AchievementMain>
-                                <AchievementTitle>{item.title}</AchievementTitle>
-                                <AchievementSubtitle>{item.subtitle}</AchievementSubtitle>
-                            </AchievementMain>
+                            <AchievementContent>
+                                <AchievementMain>
+                                    <AchievementTitle>{item.title}</AchievementTitle>
+                                    <AchievementSubtitle>{item.subtitle}</AchievementSubtitle>
+                                </AchievementMain>
 
-                            <AchievementRight>
-                                <PointsChip>{item.points}б</PointsChip>
+                                <AchievementRight>
+                                    <PointsChip>{item.points}б</PointsChip>
 
-                                {item.tags.slice(0, 2).map((t, i) => (
-                                    <TagChip key={`${item.id}-tag-${i}`}>{t}</TagChip>
-                                ))}
+                                    <TagsContainer>
+                                        {item.tags.slice(0, 2).map((t, i) => (
+                                            <TagChip key={`${item.uuid}-tag-${i}`}>{t}</TagChip>
+                                        ))}
+                                    </TagsContainer>
 
-                                <IconActions>
-                                    <IconButton icon={editIcon} size={26} onClick={() => props.onEdit(item.id)} />
-                                    <IconButton icon={trashIcon} size={26} onClick={() => props.onDelete(item.id)} />
-                                </IconActions>
-                            </AchievementRight>
+                                    <IconActions>
+                                        {props.readonly ? (
+                                            <IconButton icon={menuIcon} size={26} onClick={() => props.onView && props.onView(item.uuid)} />
+                                        ) : (
+                                            <>
+                                                <IconButton icon={editIcon} size={26} onClick={() => props.onEdit &&  props.onEdit(item.uuid)}/>
+                                                <IconButton icon={trashIcon} size={26} onClick={() => props.onDelete && props.onDelete(item.uuid)} />
+                                            </>
+                                        )}
+                                    </IconActions>
+                                </AchievementRight>
+                            </AchievementContent>
                         </AchievementRow>
                     ))}
                 </GroupBody>

@@ -26,6 +26,7 @@ import {
 import { observer } from "mobx-react-lite";
 import DefaultButton from "../buttons/DefaultButton";
 import { usePathname, useRouter } from "next/navigation";
+import { ButtonSize, ButtonVariant } from "@/models/types";
 
 const Header: React.FC = observer(() => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -69,12 +70,12 @@ const Header: React.FC = observer(() => {
   };
 
   const tabs = [
-    { label: "Каталог", url: "/auth" },
-    { label: "Заказы", url: "/orders" },
-    { label: "Избранное", url: "/favorites" },
-    { label: "О нас", url: "/about" },
-    { label: "Контакты", url: "/contacts" },
+    { label: "Категории", url: "/admin/category" },
+    { label: "Рейтинг", url: "/admin/raiting" },
+    { label: "Пользователи", url: "/user" },
   ];
+
+  if (pathname === '/auth') return null;
 
   return (
       <HeaderContainer>
@@ -114,13 +115,13 @@ const Header: React.FC = observer(() => {
 
                   <DropdownButtons>
                     <ButtonWrapper>
-                      <DefaultButton variant="primary" size="medium" onClick={handleProfile} fullWidth>
+                      <DefaultButton variant={ButtonVariant.PRIMARY} size={ButtonSize.MEDIUM} onClick={handleProfile} fullWidth>
                         Личный кабинет
                       </DefaultButton>
                     </ButtonWrapper>
 
                     <ButtonWrapper>
-                      <DefaultButton variant="outline" size="medium" onClick={handleLogout} fullWidth>
+                      <DefaultButton variant={ButtonVariant.OUTLINE} size={ButtonSize.MEDIUM} onClick={handleLogout} fullWidth>
                         Выход
                       </DefaultButton>
                     </ButtonWrapper>

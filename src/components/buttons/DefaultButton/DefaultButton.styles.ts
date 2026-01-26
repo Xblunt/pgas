@@ -1,7 +1,5 @@
+import { ButtonSize, ButtonVariant } from '@/models/types';
 import styled, { css } from 'styled-components';
-
-type ButtonVariant = 'primary' | 'outline';
-type ButtonSize = 'small' | 'medium';
 
 export const StyledButton = styled.button<{
   $variant: ButtonVariant;
