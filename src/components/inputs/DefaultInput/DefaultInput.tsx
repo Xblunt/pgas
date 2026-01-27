@@ -2,7 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useMask } from '@react-input/mask';
-import { StyledInput, InputWrapper, InputLabel, ErrorText, PasswordToggle } from './DefaultInput.styles';
+import { 
+  StyledInput, 
+  InputWrapper, 
+  InputLabel, 
+  ErrorText, 
+  PasswordToggle,
+  ChangePasswordLink 
+} from './DefaultInput.styles';
 
 export interface DefaultInputProps {
   label?: string;
@@ -18,9 +25,12 @@ export interface DefaultInputProps {
   maxLength?: number;
   required?: boolean;
   validateEmail?: boolean;
+  hideViewPassword?: boolean;
+  hideChangePassword?: boolean;
   onChange?: (value: string) => void;
   onBlur?: () => void;
   onFocus?: () => void;
+  onChangePassword?: () => void;
 }
 
 const DefaultInput = (props: DefaultInputProps) => {
@@ -158,11 +168,26 @@ const DefaultInput = (props: DefaultInputProps) => {
     setShowPassword(!showPassword);
   };
 
+  const handleChangePasswordClick = () => {
+    if (props.onChangePassword && !props.disabled) {
+      props.onChangePassword();
+    }
+  };
+
   const inputType = props.isPassword 
     ? (showPassword ? 'text' : 'password')
     : (props.type || 'text');
 
   const showError = props.error || emailError || validationError;
+  
+  const shouldShowChangePasswordLink = 
+    props.isPassword && 
+    !props.hideChangePassword
+ 
+  const shouldShowPasswordToggle = 
+    props.isPassword && 
+    !props.hideViewPassword && 
+    !props.disabled;
 
   return (
     <InputWrapper className={props.className} $fullWidth={!!props.fullWidth}>
@@ -186,7 +211,7 @@ const DefaultInput = (props: DefaultInputProps) => {
           onFocus={props.onFocus}
           maxLength={props.maxLength}
         />
-        {props.isPassword && (
+        {shouldShowPasswordToggle && (
           <PasswordToggle
             type="button"
             onClick={togglePasswordVisibility}
@@ -196,6 +221,13 @@ const DefaultInput = (props: DefaultInputProps) => {
           </PasswordToggle>
         )}
       </div>
+      {shouldShowChangePasswordLink && (
+        <ChangePasswordLink 
+          onClick={handleChangePasswordClick}
+        >
+          Сменить пароль
+        </ChangePasswordLink>
+      )}
       {showError && <ErrorText>{showError}</ErrorText>}
     </InputWrapper>
   );

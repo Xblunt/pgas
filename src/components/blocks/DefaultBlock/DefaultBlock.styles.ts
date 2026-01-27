@@ -4,7 +4,10 @@ interface BlockContainerProps {
     $clickable?: boolean;
 }
 
-export const BlockWrapper = styled.div``;
+export const BlockWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
 
 export const BlockTitle = styled.h2`
     margin: 0 0 10px 0;
@@ -23,12 +26,15 @@ export const BlockContainer = styled.div<BlockContainerProps>`
     background: var(--color-white);
     border: 1px solid var(--color-primary);
     border-radius: 12px;
-    padding: 16px 18px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     transition: background-color 0.2s ease;
+    min-height: 72px; /* Минимальная высота как у DropdownBlock */
+    height: auto;
+    box-sizing: border-box;
 
     ${props => props.$clickable && `
         cursor: pointer;
@@ -39,8 +45,9 @@ export const BlockContainer = styled.div<BlockContainerProps>`
     `}
 
     @media (max-width: 768px) {
-        padding: 14px 16px;
+        padding: 12px 16px;
         gap: 12px;
+        min-height: 64px;
     }
 `;
 
@@ -57,8 +64,8 @@ export const BlockContent = styled.div`
 `;
 
 export const NumberBox = styled.div`
-    width: 54px;
-    height: 54px;
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--color-secondary);
     border-radius: 10px;
     display: flex;
@@ -93,6 +100,7 @@ export const InfoPrimary = styled.div`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
 
     @media (max-width: 768px) {
         font-size: 14px;
@@ -107,6 +115,7 @@ export const InfoSecondary = styled.div`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
 
     @media (max-width: 768px) {
         font-size: 12px;

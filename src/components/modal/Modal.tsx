@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ModalOverlay,
   ModalContainer,
@@ -29,6 +29,15 @@ const Modal: React.FC<ModalProps> = (props) => {
       <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `;
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget &&  props.onClose) {
@@ -66,7 +75,6 @@ const Modal: React.FC<ModalProps> = (props) => {
                   variant={button.variant || ButtonVariant.PRIMARY}
                   onClick={button.onClick}
                   disabled={button.disabled}
-                  fullWidth
                 >
                   {button.text}
                 </DefaultButton>

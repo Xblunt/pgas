@@ -69,8 +69,9 @@ export const ModalFooter = styled.div`
   gap: 10px;
   padding: 20px;
   border-top: 1px solid rgba(38, 48, 69, 0.1);
+  justify-content: flex-end;
 `;
 
 export const ModalButton = styled.div`
-  flex: 1;
+  min-width: fit-content;
 `;

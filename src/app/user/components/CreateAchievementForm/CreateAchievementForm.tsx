@@ -3,23 +3,8 @@
 import React, { useMemo, useRef } from "react";
 import { DefaultInput, DropdownInput, TextareaInput } from "@/components/inputs";
 import { FormContainer, FileRow, FileButton, HiddenFileInput } from "./CreateAchievementForm.styles";
-import { ButtonVariant, ButtonSize } from "@/models/types";
+import { ButtonVariant, ButtonSize, AchievementFormState } from "@/models/types";
 import Modal from "@/components/modal";
-
-export type AchievementFormState = {
-    category: string;
-    subcategory: string;
-    place: string;
-    participants: number;
-    preliminaryPoints: number;
-    actualPoints: number;
-    status: string;
-    publicationDate: string;
-    file: File | null;
-    fileName: string;
-    link: string;
-    description: string;
-};
 
 export interface CreateAchievementFormProps {
     value: AchievementFormState;
@@ -94,7 +79,7 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
                 { text: "Сохранить", variant: ButtonVariant.PRIMARY, onClick: props.onSave },
             ]}
         >
-            <FormContainer>
+            <div className="form">
                 <DefaultInput
                     label="Категория"
                     value={props.value.category}
@@ -195,7 +180,7 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
                     rows={4}
                     placeholder="Введите описание"
                 />
-            </FormContainer>
+            </div>
         </Modal>
     );
 };

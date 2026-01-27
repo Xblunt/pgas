@@ -6,8 +6,8 @@ import { useStores } from "@/hooks/useStores";
 import { SectionTitle, AchievementsBlock, DividerSpace } from "./page.styles";
 import { DropdownBlock } from "@/components/blocks";
 import DefaultBlock from "@/components/blocks/DefaultBlock/DefaultBlock";
-import { DropdownBlockItem } from "@/models/types";
-import CreateAchievementForm, { AchievementFormState } from "./CreateAchievementForm/CreateAchievementForm";
+import { AchievementFormState, DropdownBlockItem } from "@/models/types";
+import { CreateAchievementForm } from "./components";
 
 type AchievementGroup = {
     uuid: string;

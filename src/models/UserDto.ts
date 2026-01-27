@@ -1,5 +1,5 @@
-export interface User {
-    uuid: string;
+export interface UserDto {
+    uuid?: string;
     name: string;
     second_name?: string;
     patronymic?: string;

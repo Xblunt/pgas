@@ -76,4 +76,32 @@ export const PasswordToggle = styled.button`
   &:hover {
     opacity: 0.8;
   }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+export const ChangePasswordLink = styled.button<{
+  disabled?: boolean;
+}>`
+  font-family: var(--fontfamily);
+  font-size: 12px;
+  color: ${props => props.disabled ? 'var(--color-primary-disabled)' : 'var(--color-blue)'};
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0;
+  margin-top: 2px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  
+  &:hover {
+    text-decoration: ${props => props.disabled ? 'none' : 'underline'};
+    opacity: ${props => props.disabled ? 1 : 0.8};
+  }
+  
+  &:active {
+    opacity: ${props => props.disabled ? 1 : 0.6};
+  }
 `;

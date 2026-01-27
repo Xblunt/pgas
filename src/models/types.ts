@@ -36,3 +36,18 @@ export interface ScoreItem {
     name: string;
     points: number;
 }
+
+export type AchievementFormState = {
+    category: string;
+    subcategory: string;
+    place: string;
+    participants: number;
+    preliminaryPoints: number;
+    actualPoints: number;
+    status: string;
+    publicationDate: string;
+    file: File | null;
+    fileName: string;
+    link: string;
+    description: string;
+};

@@ -6,6 +6,7 @@ import { CreateUser } from "@/models/User";
 import { Card, FormGrid } from "./page.styles";
 import Toolbar from "@/components/toolbar/Toolbar";
 import { ButtonVariant } from "@/models/types";
+import { ChangePasswordForm } from "../auth/components";
 
 const STORAGE_KEY = "pgas_profile";
 
@@ -21,9 +22,10 @@ const emptyProfile: CreateUser = {
 };
 
 const ProfilePage: React.FC = () => {
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [profile, setProfile] = useState<CreateUser>({ ...emptyProfile });
     const [snapshot, setSnapshot] = useState<CreateUser>({ ...emptyProfile });
+    const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -114,6 +116,12 @@ const ProfilePage: React.FC = () => {
         }
     }, [isEditMode, hasRequiredFilled]);
 
+    const handleChangePassword = (newPassword: string) => {
+        setViewChangePasswordForm(false);
+        console.log("newPassword", newPassword);
+    }
+
+
     return (
         <div className="page">
             <Toolbar 
@@ -202,13 +210,17 @@ const ProfilePage: React.FC = () => {
                         onChange={(value) => handleChange("password", value)}
                         placeholder="Введите пароль"
                         fullWidth
+                        onChangePassword={() => setViewChangePasswordForm(true)}
+                        hideViewPassword
+                        hideChangePassword={disabled}
                         isPassword
                         required
-                        disabled={disabled}
+                        disabled={true}
                     />
                 </FormGrid>
 
             </Card>
+            {viewChangePasswordForm && <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} />}
         </div>
     );
 };

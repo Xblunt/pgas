@@ -10,7 +10,7 @@ import {
 } from "./page.styles";
 import { CreateUser } from "@/models/User";
 import { SignIn } from "@/models/Auth";
-import { SingInForm, SingUpForm } from "./components";
+import { ChangePasswordForm, SingInForm, SingUpForm } from "./components";
 import { useRouter } from "next/navigation";
 import { useStores } from "@/hooks/useStores";
 
@@ -18,7 +18,8 @@ const AuthPage: React.FC = () => {
   const router = useRouter();
   const { authStore } = useStores();
 
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
   const [signInData, setSignInData] = useState<SignIn>({
     email: "",
     password: "",
@@ -65,7 +66,14 @@ const AuthPage: React.FC = () => {
     console.log("Sign up data:", signUpData);
   };
 
+  const handleChangePassword = (newPassword: string, email?: string) => {
+    if (!email) return;
+    setViewChangePasswordForm(false);
+    console.log("newPassword", newPassword);
+  }
+
   return (
+    <>
       <AuthContainer $isSignUp={isSignUp}>
         <AuthCard>
           <IconContainer>
@@ -79,6 +87,7 @@ const AuthPage: React.FC = () => {
                   data={signInData}
                   onChange={handleSignInChange}
                   onSubmit={handleSignInSubmit}
+                  onChangePassword={() => setViewChangePasswordForm(true)}
                   onSwitchToSignUp={() => setIsSignUp(true)}
               />
           ) : (
@@ -91,6 +100,9 @@ const AuthPage: React.FC = () => {
           )}
         </AuthCard>
       </AuthContainer>
+
+      {viewChangePasswordForm && <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} email={signInData.email} />}
+    </>
   );
 };
 

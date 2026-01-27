@@ -5,7 +5,8 @@ export const ToolbarContainer = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 0;
+  padding-top: 20px;
+  padding-bottom: 10px;
 
   @media (max-width: 768px) {
     padding: 14px 0;

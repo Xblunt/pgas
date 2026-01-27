@@ -73,8 +73,16 @@ img {
     box-sizing: border-box;
 }
 
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 @media (max-width: 768px) {
     .page {
-        padding: 110px 20px 40px;
+        padding: 90px 20px 40px;
     }
 }
+
+

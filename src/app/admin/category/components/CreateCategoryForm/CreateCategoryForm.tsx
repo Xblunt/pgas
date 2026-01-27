@@ -1,23 +1,18 @@
 import Modal from "@/components/modal";
-import { ButtonVariant, ScoreItem } from "@/models/types";
+import { ButtonVariant } from "@/models/types";
 import React from "react";
 import { useState } from "react";
-import { FormContainer } from "@/app/user/CreateAchievementForm/CreateAchievementForm.styles";
-import { DefaultInput } from "@/components/inputs";
-import Score from "@/components/score";
+import { DefaultInput, NumberInput } from "@/components/inputs";
 
 export type Props = {
-    subCategory?: any;
+    category?: any;
     onClose: () => void;
     onSave: (category: any) => void
 };
 
-const CreateSubCategoryForm: React.FC<Props> = (props) => {
+const CreateCategoryForm: React.FC<Props> = (props) => {
     const [data, setData] = useState<any | null>(
-        props.subCategory || { 
-            name: '', 
-            pointsItems: props.subCategory?.pointsItems || [] 
-        }
+        props.category || { name: '', points: 0 }
     )
 
     const handleChange = (field: string, value: any) => {
@@ -27,20 +22,13 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
         }));
     };
 
-    const handleScoreItemsChange = (items: ScoreItem[]) => {
-        setData((prev: any) => ({
-            ...prev,
-            pointsItems: items
-        }));
-    };
-
     const handleSave = () => {
         props.onSave(data);
     };
 
     return (
         <Modal
-            title={`${!!props.subCategory ? 'Редактировать' : 'Добавить'} подкатегорию`}
+            title={`${!!props.category ? 'Редактировать' : 'Добавить'} категорию`}
             fullWidth
             maxWidth={640}
             buttons={[
@@ -48,7 +36,8 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
                 { text: "Сохранить", disabled: !data.name, variant: ButtonVariant.PRIMARY, onClick: handleSave  },
             ]}
         >
-            <FormContainer>
+
+            <div className="form">
                 <DefaultInput
                     label="Название"
                     value={data.name || ''}
@@ -56,15 +45,15 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
                     required={true}
                     fullWidth
                 />
-                <Score
-                    title="Варианты ответа"
-                    initialItems={data.pointsItems}
-                    onItemsChange={handleScoreItemsChange}
+                <NumberInput
+                    label="Количество баллов"
+                    value={data.points || 0}
+                    onChange={(value) => handleChange('points', value)}
+                    fullWidth
                 />
-            </FormContainer>
-
+            </div>
         </Modal>
     );
 };
 
-export default CreateSubCategoryForm;
+export default CreateCategoryForm;

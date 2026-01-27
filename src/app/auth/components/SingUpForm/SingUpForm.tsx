@@ -105,6 +105,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
                 onChange={(value) => props.onChange("password", value)}
                 placeholder="Введите пароль"
                 fullWidth
+                hideChangePassword
                 isPassword
                 required
             />

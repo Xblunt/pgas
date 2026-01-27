@@ -11,10 +11,11 @@ interface LoginFormProps {
     onChange: (field: keyof SignIn, value: string) => void;
     onSubmit: () => void;
     onSwitchToSignUp: () => void;
+    onChangePassword: () => void;
 }
 
 const SingInForm: React.FC<LoginFormProps> = (props) => {
-    const [isFormValid, setIsFormValid] = useState(false);
+    const [isFormValid, setIsFormValid] = useState<boolean>(false);
 
     useEffect(() => {
         const isValid = Boolean(props.data.email?.trim() && props.data.password?.trim());
@@ -40,6 +41,7 @@ const SingInForm: React.FC<LoginFormProps> = (props) => {
                 required={true}
                 value={props.data.password}
                 onChange={(value) => props.onChange("password", value)}
+                onChangePassword={props.onChangePassword}
                 placeholder="Введите пароль"
                 fullWidth
                 isPassword
