@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   ModalOverlay,
   ModalContainer,
@@ -7,10 +7,12 @@ import {
   ModalCloseButton,
   ModalContent,
   ModalFooter,
-  ModalButton
+  ModalButton,
+  LoaderContainer
 } from './Modal.styles';
 import { IconButton, DefaultButton } from '../buttons';
 import { ButtonAction, ButtonVariant } from '@/models/types';
+import Loader from '../loader';
 
 export interface ModalProps {
   onClose?: () => void;
@@ -20,6 +22,7 @@ export interface ModalProps {
   fullWidth?: boolean;
   maxWidth?: number;
   className?: string;
+  loading?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = (props) => {
@@ -30,6 +33,9 @@ const Modal: React.FC<ModalProps> = (props) => {
     </svg>
   `;
 
+  const [isMouseDownOnOverlay, setIsMouseDownOnOverlay] = useState(false);
+  const modalContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -39,18 +45,49 @@ const Modal: React.FC<ModalProps> = (props) => {
     };
   }, []);
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget &&  props.onClose) {
-      props.onClose();
+  const handleOverlayMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      setIsMouseDownOnOverlay(true);
     }
   };
 
+  const handleOverlayMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMouseDownOnOverlay && e.target === e.currentTarget && props.onClose) {
+      props.onClose();
+    }
+    setIsMouseDownOnOverlay(false);
+  };
+
+  const handleModalContainerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+  };
+
+  useEffect(() => {
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && props.onClose) {
+        props.onClose();
+      }
+    };
+
+    if (props.onClose) {
+      document.addEventListener('keydown', handleEscKey);
+      return () => {
+        document.removeEventListener('keydown', handleEscKey);
+      };
+    }
+  }, [props.onClose]);
+
   return (
-    <ModalOverlay onClick={handleOverlayClick}>
+    <ModalOverlay 
+      onMouseDown={handleOverlayMouseDown}
+      onMouseUp={handleOverlayMouseUp}
+    >
       <ModalContainer 
+        ref={modalContainerRef}
         $fullWidth={!!props.fullWidth} 
         $maxWidth={props.maxWidth}
         className={props.className}
+        onMouseDown={handleModalContainerMouseDown}
       >
         {(props.title || props.onClose) && (
           <ModalHeader>
@@ -64,17 +101,23 @@ const Modal: React.FC<ModalProps> = (props) => {
         )}
         
         <ModalContent>
-          {props.children}
+          {props.loading ? (
+            <LoaderContainer>
+              <Loader inContetnt={true} />
+            </LoaderContainer>
+          ) : (
+            props.children
+          )}
         </ModalContent>
         
         {props.buttons && props.buttons.length > 0 && (
-          <ModalFooter>
+          <ModalFooter $loading={props.loading}>
             {props.buttons.map((button, index) => (
               <ModalButton key={index}>
                 <DefaultButton
                   variant={button.variant || ButtonVariant.PRIMARY}
                   onClick={button.onClick}
-                  disabled={button.disabled}
+                  disabled={button.disabled || props.loading}
                 >
                   {button.text}
                 </DefaultButton>

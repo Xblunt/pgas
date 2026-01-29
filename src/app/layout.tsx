@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import "./globals.css";
 import StoreProvider from "@/stores/StoreProvider";
 import Header from "@/components/header";
+import { ToastProvider } from "./ToastProvider";
 
 interface IProps {
   children: ReactNode;
@@ -13,13 +14,15 @@ export default function RootLayout({ children }: IProps) {
   return (
     <html lang="ru" translate="no">
       <head>
-        <title>ПГАС</title>
+        <title>Система подсчета рейтинга ПГАС</title>
       </head>
       <body>
-            <StoreProvider>
-              <Header />
-              {children}
-            </StoreProvider>
+        <StoreProvider>
+          <ToastProvider>
+            <Header />
+            {children}
+          </ToastProvider>
+        </StoreProvider>
       </body>
     </html>
   );

@@ -1,14 +1,18 @@
-import { AuthStore, UserStore, AdminStore} from "@/stores";
+import { AuthStore, CategoryStore, ProfileStore, RaitingStore, UserStore} from "@/stores";
 
 class RootStore {
   userStore: UserStore;
   authStore: AuthStore;
-  adminStore: AdminStore;
+  profileStore: ProfileStore;
+  categoryStore: CategoryStore;
+  raitingStore: RaitingStore;
 
   constructor() {
     this.userStore = new UserStore();
     this.authStore = new AuthStore(this);
-    this.adminStore = new AdminStore();
+    this.profileStore = new ProfileStore();
+    this.categoryStore = new CategoryStore();
+    this.raitingStore = new RaitingStore();
   }
 }
 

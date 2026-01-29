@@ -51,3 +51,10 @@ export type AchievementFormState = {
     link: string;
     description: string;
 };
+
+export interface ToastData {
+  id: string;
+  message: string;
+  type: 'success' | 'error';
+  duration?: number;
+}

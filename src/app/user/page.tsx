@@ -8,6 +8,7 @@ import { DropdownBlock } from "@/components/blocks";
 import DefaultBlock from "@/components/blocks/DefaultBlock/DefaultBlock";
 import { AchievementFormState, DropdownBlockItem } from "@/models/types";
 import { CreateAchievementForm } from "./components";
+import Loader from "@/components/loader";
 
 type AchievementGroup = {
     uuid: string;
@@ -96,7 +97,7 @@ const createEmptyForm = (category: string): AchievementFormState => ({
 
 const UserPage: React.FC = () => {
     const router = useRouter();
-    const { authStore } = useStores();
+    const { authStore, userStore } = useStores();
 
     const [groups, setGroups] = useState<AchievementGroup[]>(initialGroups);
     const [openGroupIds, setOpenGroupIds] = useState<Record<string, boolean>>({
@@ -256,6 +257,8 @@ const UserPage: React.FC = () => {
     const orderedGroups = useMemo(() => groups, [groups]);
 
     const modalTitle = modalMode === "create" ? "Добавить публикацию" : "Редактировать публикацию";
+
+    if (userStore.isLoading) return <Loader />
 
     return (
         <div className="page">

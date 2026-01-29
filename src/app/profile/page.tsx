@@ -7,6 +7,8 @@ import { Card, FormGrid } from "./page.styles";
 import Toolbar from "@/components/toolbar/Toolbar";
 import { ButtonVariant } from "@/models/types";
 import { ChangePasswordForm } from "../auth/components";
+import Loader from "@/components/loader";
+import { useStores } from "@/hooks/useStores";
 
 const STORAGE_KEY = "pgas_profile";
 
@@ -22,6 +24,7 @@ const emptyProfile: CreateUser = {
 };
 
 const ProfilePage: React.FC = () => {
+    const { profileStore } = useStores();
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [profile, setProfile] = useState<CreateUser>({ ...emptyProfile });
     const [snapshot, setSnapshot] = useState<CreateUser>({ ...emptyProfile });
@@ -150,6 +153,8 @@ const ProfilePage: React.FC = () => {
         setViewChangePasswordForm(false);
         console.log("newPassword", newPassword);
     }
+
+    if (profileStore.isLoading) return <Loader />
 
     return (
         <div className="page">

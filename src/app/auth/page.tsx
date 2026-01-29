@@ -66,7 +66,8 @@ const AuthPage: React.FC = () => {
 
   const handleChangePassword = (newPassword: string, email?: string) => {
     if (!email) return;
-    setViewChangePasswordForm(false);
+    // authStore.setLoading(true)
+    // setViewChangePasswordForm(false);
     console.log("newPassword", newPassword);
   }
 
@@ -83,6 +84,7 @@ const AuthPage: React.FC = () => {
           {!isSignUp ? (
               <SingInForm
                   data={signInData}
+                  loading={authStore.isLoading}
                   onChange={handleSignInChange}
                   onSubmit={handleSignInSubmit}
                   onChangePassword={() => setViewChangePasswordForm(true)}
@@ -91,6 +93,7 @@ const AuthPage: React.FC = () => {
           ) : (
               <SingUpForm
                   data={signUpData}
+                  loading={authStore.isLoading}
                   onChange={handleSignUpChange}
                   onSubmit={handleSignUpSubmit}
                   onSwitchToLogin={() => setIsSignUp(false)}

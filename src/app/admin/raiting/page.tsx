@@ -7,8 +7,11 @@ import { DefaultBlock } from "@/components/blocks";
 import Filters from "@/components/filters";
 import Pagination from "@/components/pagination";
 import { ConfirmResetModal, ViewUserModal } from "./components";
+import { useStores } from "@/hooks/useStores";
+import Loader from "@/components/loader";
 
 const AdminRaitingPage: React.FC = () => {
+    const { raitingStore } = useStores();
     const [allUsers] = useState([
         { uuid: '1', name: 'Иван Иванович Иванов' },
         { uuid: '2', name: 'Петр Петрович Петров' },
@@ -130,6 +133,8 @@ const AdminRaitingPage: React.FC = () => {
     const handleSearchChange = (value: string) => {
         setSearchValue(value);
     };
+
+    if (raitingStore.isLoading) return <Loader />
 
     return (
         <div className="page">

@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-class UserStore {
+class CategoryStore {
   private _isLoading: boolean = false;
 
   constructor() {
@@ -20,4 +20,4 @@ class UserStore {
   }
 }
 
-export default UserStore;
+export default CategoryStore;

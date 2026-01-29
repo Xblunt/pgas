@@ -19,6 +19,7 @@ export type Props = {
 };
 
 const ChangePasswordForm: React.FC<Props> = (props) => {
+    const [loading, setLoading] = useState<boolean>(false);
     const [formData, setFormData] = useState<ChangePasswordData>({
         newPassword: '',
         confirmPassword: '',
@@ -75,6 +76,8 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
             return;
         }
 
+        setLoading(true);
+
         props.onSave(formData.newPassword, formData.email);
     };
 
@@ -91,7 +94,9 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
         <Modal
             title="Сменить пароль"
             fullWidth
+            loading={loading}
             maxWidth={480}
+            onClose={props.onClose}
             buttons={[
                 { 
                     text: "Закрыть", 

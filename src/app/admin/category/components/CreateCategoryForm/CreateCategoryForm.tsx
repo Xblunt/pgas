@@ -11,6 +11,7 @@ export type Props = {
 };
 
 const CreateCategoryForm: React.FC<Props> = (props) => {
+    const [loading, setLoading] = useState<boolean>(false)
     const [data, setData] = useState<any | null>(
         props.category || { name: '', points: 0 }
     )
@@ -30,7 +31,9 @@ const CreateCategoryForm: React.FC<Props> = (props) => {
         <Modal
             title={`${!!props.category ? 'Редактировать' : 'Добавить'} категорию`}
             fullWidth
+            loading={loading}
             maxWidth={640}
+            onClose={props.onClose}
             buttons={[
                 { text: "Закрыть", variant: ButtonVariant.OUTLINE, onClick: props.onClose  },
                 { text: "Сохранить", disabled: !data.name, variant: ButtonVariant.PRIMARY, onClick: handleSave  },

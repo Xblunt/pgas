@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, ReactNode, FC, useEffect, useState } from "react";
-import { AuthStore, UserStore, AdminStore, RootStore } from "@/stores";
-import { AUTH_STORE, USER_STORE, ADMIN_STORE } from "@/stores/identifiers";
+import { AuthStore, UserStore, RootStore, CategoryStore, ProfileStore, RaitingStore } from "@/stores";
+import { AUTH_STORE, CATEGORY_STORE, PROFILE_STORE, RAITING_STORE, USER_STORE } from "@/stores/identifiers";
 import Injector from "@/utils/injector";
 
 
@@ -10,7 +10,9 @@ interface StoreContextValue {
   rootStore: RootStore;
   authStore: AuthStore;
   userStore: UserStore;
-  adminStore: AdminStore;
+  profileStore: ProfileStore;
+  categoryStore: CategoryStore;
+  raitingStore: RaitingStore;
 }
 
 export const StoreContext = createContext<StoreContextValue | undefined>(undefined);
@@ -30,7 +32,9 @@ const StoreProvider: FC<StoreProviderProps> = ({ children }) => {
         rootStore: rootStr,
         authStore: rootStr.authStore,
         userStore: rootStr.userStore,
-        adminStore: rootStr.adminStore,
+        profileStore: rootStr.profileStore,
+        categoryStore: rootStr.categoryStore,
+        raitingStore: rootStr.raitingStore,
       });
     }
   }, []);
@@ -38,7 +42,9 @@ const StoreProvider: FC<StoreProviderProps> = ({ children }) => {
   if (rootStore) {
     Injector.register(AUTH_STORE, rootStore.authStore);
     Injector.register(USER_STORE, rootStore.userStore);
-    Injector.register(ADMIN_STORE, rootStore.adminStore);
+    Injector.register(PROFILE_STORE, rootStore.profileStore);
+    Injector.register(CATEGORY_STORE, rootStore.categoryStore);
+    Injector.register(RAITING_STORE, rootStore.raitingStore);
 
     return (
       <StoreContext.Provider value={{ ...rootStore }}>

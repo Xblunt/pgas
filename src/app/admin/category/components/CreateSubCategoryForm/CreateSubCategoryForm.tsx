@@ -12,6 +12,7 @@ export type Props = {
 };
 
 const CreateSubCategoryForm: React.FC<Props> = (props) => {
+    const [loading, setLoading] = useState<boolean>(false)
     const [data, setData] = useState<any | null>(
         props.subCategory || { 
             name: '', 
@@ -41,7 +42,9 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
         <Modal
             title={`${!!props.subCategory ? 'Редактировать' : 'Добавить'} подкатегорию`}
             fullWidth
+            loading={loading}
             maxWidth={640}
+            onClose={props.onClose}
             buttons={[
                 { text: "Закрыть", variant: ButtonVariant.OUTLINE, onClick: props.onClose  },
                 { text: "Сохранить", disabled: !data.name, variant: ButtonVariant.PRIMARY, onClick: handleSave  },
