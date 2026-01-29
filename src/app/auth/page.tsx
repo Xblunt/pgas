@@ -58,8 +58,6 @@ const AuthPage: React.FC = () => {
       router.push("/user");
       return;
     }
-
-    window.alert("Неверный email или пароль");
   };
 
   const handleSignUpSubmit = () => {

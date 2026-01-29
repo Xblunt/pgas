@@ -12,12 +12,12 @@ const STORAGE_KEY = "pgas_profile";
 
 const emptyProfile: CreateUser = {
     name: "",
+    email: "",
+    phone_number: "",
     second_name: "",
     patronymic: "",
     gradebook_number: "",
     birth_date: "",
-    email: "",
-    phone_number: "",
     password: "",
 };
 
@@ -26,6 +26,12 @@ const ProfilePage: React.FC = () => {
     const [profile, setProfile] = useState<CreateUser>({ ...emptyProfile });
     const [snapshot, setSnapshot] = useState<CreateUser>({ ...emptyProfile });
     const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
+    
+    const [validFields, setValidFields] = useState({
+        email: true,
+        phone: true,
+        date: true,
+    });
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -45,30 +51,49 @@ const ProfilePage: React.FC = () => {
             };
             setProfile(merged);
             setSnapshot(merged);
+            
+            setValidFields({
+                email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(merged.email),
+                phone: merged.phone_number.length === 18,
+                date: merged.birth_date.length === 10,
+            });
         } catch {
             setProfile({ ...emptyProfile });
             setSnapshot({ ...emptyProfile });
         }
     }, []);
 
-    const handleChange = (field: keyof CreateUser, value: string) => {
+    const handleChange = (field: keyof CreateUser, value: string, isValid?: boolean) => {
         setProfile((prev) => ({
             ...prev,
             [field]: value,
         }));
+        
+        if (field === 'email' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, email: isValid }));
+        }
+        if (field === 'phone_number' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, phone: isValid }));
+        }
+        if (field === 'birth_date' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, date: isValid }));
+        }
     };
 
     const hasRequiredFilled = useMemo(() => {
         return Boolean(
             profile.name.trim() &&
-            profile.second_name.trim() &&
             profile.email.trim() &&
             profile.phone_number.trim() &&
-            profile.birth_date.trim() &&
-            profile.gradebook_number.trim() &&
-            profile.password.trim()
+            profile.birth_date.trim()
         );
     }, [profile]);
+
+    const allValidFields = useMemo(() => {
+        return validFields.email && validFields.phone && validFields.date;
+    }, [validFields]);
+
+    const canSave = hasRequiredFilled && allValidFields;
 
     const handleEdit = () => {
         setSnapshot(profile);
@@ -78,6 +103,11 @@ const ProfilePage: React.FC = () => {
     const handleCancel = () => {
         setProfile(snapshot);
         setIsEditMode(false);
+        setValidFields({
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(snapshot.email),
+            phone: snapshot.phone_number.length === 18,
+            date: snapshot.birth_date.length === 10,
+        });
     };
 
     const handleSave = () => {
@@ -102,7 +132,7 @@ const ProfilePage: React.FC = () => {
                     text: "Сохранить",
                     variant: ButtonVariant.PRIMARY,
                     onClick: handleSave,
-                    disabled: !hasRequiredFilled,
+                    disabled: !canSave,
                 },
             ];
         } else {
@@ -114,13 +144,12 @@ const ProfilePage: React.FC = () => {
                 },
             ];
         }
-    }, [isEditMode, hasRequiredFilled]);
+    }, [isEditMode, canSave]);
 
     const handleChangePassword = (newPassword: string) => {
         setViewChangePasswordForm(false);
         console.log("newPassword", newPassword);
     }
-
 
     return (
         <div className="page">
@@ -172,7 +201,7 @@ const ProfilePage: React.FC = () => {
                     <DefaultInput
                         label="Дата рождения"
                         value={profile.birth_date}
-                        onChange={(value) => handleChange("birth_date", value)}
+                        onChange={(value, isValid) => handleChange("birth_date", value, isValid)}
                         placeholder="dd.mm.yyyy"
                         fullWidth
                         mask="date"
@@ -185,7 +214,7 @@ const ProfilePage: React.FC = () => {
                         type="email"
                         value={profile.email}
                         validateEmail={true}
-                        onChange={(value) => handleChange("email", value)}
+                        onChange={(value, isValid) => handleChange("email", value, isValid)}
                         placeholder="example@email.com"
                         fullWidth
                         required
@@ -195,7 +224,7 @@ const ProfilePage: React.FC = () => {
                     <DefaultInput
                         label="Номер телефона"
                         value={profile.phone_number}
-                        onChange={(value) => handleChange("phone_number", value)}
+                        onChange={(value, isValid) => handleChange("phone_number", value, isValid)}
                         placeholder="+7 (___) ___-__-__"
                         fullWidth
                         mask="phone"
@@ -214,11 +243,9 @@ const ProfilePage: React.FC = () => {
                         hideViewPassword
                         hideChangePassword={disabled}
                         isPassword
-                        required
                         disabled={true}
                     />
                 </FormGrid>
-
             </Card>
             {viewChangePasswordForm && <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} />}
         </div>

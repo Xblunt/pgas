@@ -25,9 +25,10 @@ export interface DefaultInputProps {
   maxLength?: number;
   required?: boolean;
   validateEmail?: boolean;
+  validatePassword?: boolean;
   hideViewPassword?: boolean;
   hideChangePassword?: boolean;
-  onChange?: (value: string) => void;
+  onChange?: (value: string, isValid: boolean) => void;
   onBlur?: () => void;
   onFocus?: () => void;
   onChangePassword?: () => void;
@@ -38,6 +39,8 @@ const DefaultInput = (props: DefaultInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
   const [emailError, setEmailError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [maskError, setMakError] = useState<string>('');
 
   const internalRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +64,16 @@ const DefaultInput = (props: DefaultInputProps) => {
     },
   });
 
+  const isMaskComplete = (value: string): boolean => {
+    if ((props.mask === 'phone' && value.length !== 18) || (props.mask === 'date' && value.length !== 10)) {
+      setMakError('Необходимо заполнить полностью')
+      return false;
+    }
+
+    setMakError('');
+    return true;
+  };
+
   const validateEmailValue = (email: string): boolean => {
     const trimmedEmail = email.trim();
     
@@ -77,6 +90,66 @@ const DefaultInput = (props: DefaultInputProps) => {
     
     setEmailError('');
     return true;
+  };
+
+  const validatePasswordValue = (password: string): boolean => {
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedPassword) {
+      setPasswordError('');
+      return true;
+    }
+    
+    if (trimmedPassword.length < 8) {
+      setPasswordError('Пароль должен содержать минимум 8 символов');
+      return false;
+    }
+    
+    setPasswordError('');
+    return true;
+  };
+
+
+  const validateRequaried = (value: string): boolean => {
+    const trimmedValue = value.trim();
+    
+    if (!trimmedValue) {
+      setValidationError('Это поле обязательно');
+      return false;
+    }
+    
+    
+    setValidationError('');
+    return true;
+  };
+
+  const validateField = (value: string): boolean => {
+    let validEmail = true;
+    let validPassword = true;
+    let validRequired = true;
+    let validMask = true;
+    
+    if (props.validateEmail && props.type === 'email') {
+      validEmail = validateEmailValue(value);
+    }
+    
+    if (props.validatePassword && props.isPassword && value.trim()) {
+      validPassword = validatePasswordValue(value);
+    }
+    
+    if (props.required) {
+      validRequired = validateRequaried(value);
+    }
+    
+    if (props.mask && (props.mask === 'phone' || props.mask === 'date')) {
+      if (value.trim()) {
+        validMask = isMaskComplete(value);
+      }
+    }
+    
+    const result = validEmail && validPassword && validRequired && validMask
+
+    return result;
   };
 
   let maskRef = null;
@@ -98,67 +171,31 @@ const DefaultInput = (props: DefaultInputProps) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const trimmedValue = value.trim();
     
     setLocalValue(value);
     
-    if (props.validateEmail && props.type === 'email') {
-      if (!trimmedValue) {
-        setEmailError('');
-        
-        if (props.onChange) {
-          props.onChange(value);
-        }
-      } else {
-        const isValid = validateEmailValue(value);
-        
-        if (isValid) {
-          setValidationError('');
-          if (props.onChange) {
-            props.onChange(value);
-          }
-        }
+    const fieldIsValid = validateField(value);
+    
+    if (props.validateEmail || props.mask === 'phone' || props.mask === 'date' || props.validatePassword) {
+      if (changeTimeoutRef.current) {
+        clearTimeout(changeTimeoutRef.current);
       }
-    } else {
-      if (props.mask === 'phone' || props.mask === 'date') {
-        if (changeTimeoutRef.current) {
-          clearTimeout(changeTimeoutRef.current);
-        }
-        
-        changeTimeoutRef.current = setTimeout(() => {
-          if (props.onChange) {
-            props.onChange(value);
-          }
-        }, 100);
-      } else {
+      
+      changeTimeoutRef.current = setTimeout(() => {
         if (props.onChange) {
-          props.onChange(value);
+          props.onChange(value, fieldIsValid);
         }
+      }, 100);
+    } else {
+      if (props.onChange) {
+        props.onChange(value, fieldIsValid);
       }
     }
   };
 
   const handleBlur = () => {
-    const hasValue = localValue.trim().length > 0;
-    
-    if (props.validateEmail && props.type === 'email') {
-      if (hasValue) {
-        validateEmailValue(localValue);
-        setValidationError('');
-      } else if (props.required) {
-        setValidationError('Это поле обязательно');
-      } else {
-        setEmailError('');
-        setValidationError('');
-      }
-    } else {
-      if (props.required && !hasValue) {
-        setValidationError('Это поле обязательно');
-      } else {
-        setValidationError('');
-      }
-    }
-    
+    validateField(localValue);
+       
     if (props.onBlur) {
       props.onBlur();
     }
@@ -178,12 +215,12 @@ const DefaultInput = (props: DefaultInputProps) => {
     ? (showPassword ? 'text' : 'password')
     : (props.type || 'text');
 
-  const showError = props.error || emailError || validationError;
+  const showError = props.error || emailError || passwordError || maskError || validationError;
   
   const shouldShowChangePasswordLink = 
     props.isPassword && 
-    !props.hideChangePassword
- 
+    !props.hideChangePassword;
+  
   const shouldShowPasswordToggle = 
     props.isPassword && 
     !props.hideViewPassword && 

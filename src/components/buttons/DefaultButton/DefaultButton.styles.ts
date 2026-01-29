@@ -14,7 +14,7 @@ export const StyledButton = styled.button<{
   cursor: pointer;
   font-family: var(--fontfamily);
   font-weight: 500;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.1s ease;
   position: relative;
   overflow: hidden;
   border-radius: 6px;

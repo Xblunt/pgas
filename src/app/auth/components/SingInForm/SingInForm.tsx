@@ -8,7 +8,7 @@ import { ButtonVariant } from "@/models/types";
 
 interface LoginFormProps {
     data: SignIn;
-    onChange: (field: keyof SignIn, value: string) => void;
+    onChange: (field: keyof SignIn, value: string, isValid?: boolean) => void;
     onSubmit: () => void;
     onSwitchToSignUp: () => void;
     onChangePassword: () => void;
@@ -16,11 +16,32 @@ interface LoginFormProps {
 
 const SingInForm: React.FC<LoginFormProps> = (props) => {
     const [isFormValid, setIsFormValid] = useState<boolean>(false);
+    const [emailValid, setEmailValid] = useState<boolean>(true);
+    const [passwordValid, setPasswordValid] = useState<boolean>(true);
 
     useEffect(() => {
-        const isValid = Boolean(props.data.email?.trim() && props.data.password?.trim());
+        const isValid = Boolean(
+            props.data.email?.trim() && 
+            props.data.password?.trim() &&
+            emailValid && 
+            passwordValid
+        );
         setIsFormValid(isValid);
-    }, [props.data]);
+    }, [props.data, emailValid, passwordValid]);
+
+    const handleEmailChange = (value: string, isValid?: boolean) => {
+        props.onChange("email", value);
+        if (isValid !== undefined) {
+            setEmailValid(isValid);
+        }
+    };
+
+    const handlePasswordChange = (value: string, isValid?: boolean) => {
+        props.onChange("password", value);
+         if (isValid !== undefined) {
+            setPasswordValid(isValid);
+        }
+    };
 
     return (
         <Form onSubmit={(e: any) => e.preventDefault()}>
@@ -30,7 +51,7 @@ const SingInForm: React.FC<LoginFormProps> = (props) => {
                 value={props.data.email}
                 validateEmail={true}
                 required={true}
-                onChange={(value) => props.onChange("email", value)}
+                onChange={handleEmailChange}
                 placeholder="student@gmail.com"
                 fullWidth
             />
@@ -40,14 +61,20 @@ const SingInForm: React.FC<LoginFormProps> = (props) => {
                 type="password"
                 required={true}
                 value={props.data.password}
-                onChange={(value) => props.onChange("password", value)}
+                onChange={handlePasswordChange}
                 onChangePassword={props.onChangePassword}
                 placeholder="Введите пароль"
                 fullWidth
+                validatePassword
                 isPassword
             />
 
-            <SubmitButton variant={ButtonVariant.PRIMARY} onClick={props.onSubmit} fullWidth disabled={!isFormValid}>
+            <SubmitButton 
+                variant={ButtonVariant.PRIMARY} 
+                onClick={props.onSubmit} 
+                fullWidth 
+                disabled={!isFormValid}
+            >
                 Войти
             </SubmitButton>
 

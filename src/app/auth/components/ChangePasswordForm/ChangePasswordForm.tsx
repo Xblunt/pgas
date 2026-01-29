@@ -26,6 +26,11 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
     });
     const [error, setError] = useState<string>('');
     const [emailError, setEmailError] = useState<string>('');
+    const [fieldValidity, setFieldValidity] = useState({
+        email: true,
+        newPassword: true,
+        confirmPassword: true,
+    });
 
     useEffect(() => {
         if (formData.newPassword  &&  formData.confirmPassword && formData.newPassword !== formData.confirmPassword) {
@@ -36,11 +41,18 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
         setError('');
     }, [formData.newPassword, formData.confirmPassword]);
 
-    const handleFieldChange = (field: keyof ChangePasswordData, value: string) => {
+    const handleFieldChange = (field: keyof ChangePasswordData, value: string, isValid?: boolean) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+        
+        if (isValid !== undefined) {
+            setFieldValidity(prev => ({
+                ...prev,
+                [field]: isValid
+            }));
+        }
     };
 
     const handleSave = () => {
@@ -66,12 +78,14 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
         props.onSave(formData.newPassword, formData.email);
     };
 
-
     const isSaveDisabled = !!error || !!emailError ||
                          !formData.newPassword.trim() || 
                          (props.email && !formData.email?.trim()) || 
                          !formData.confirmPassword.trim() ||
-                         formData.newPassword !== formData.confirmPassword;
+                         formData.newPassword !== formData.confirmPassword ||
+                         (props.email && !fieldValidity.email) ||
+                         !fieldValidity.newPassword ||
+                         !fieldValidity.confirmPassword;
 
     return (
         <Modal
@@ -98,11 +112,11 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
                     <DefaultInput
                         label="Email"
                         type="email"
-                        value={props.email}
+                        value={formData.email || ''}
                         validateEmail={true}
                         required={true}
                         error={emailError}
-                        onChange={(value) => handleFieldChange("email", value)}
+                        onChange={(value, isValid) => handleFieldChange("email", value, isValid)}
                         placeholder="student@gmail.com"
                         fullWidth
                     />
@@ -113,9 +127,10 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
                     type="password"
                     required={true}
                     value={formData.newPassword}
-                    onChange={(value) => handleFieldChange("newPassword", value)}
+                    onChange={(value, isValid) => handleFieldChange("newPassword", value, isValid)}
                     placeholder="Введите новый пароль"
                     fullWidth
+                    validatePassword
                     hideChangePassword
                     isPassword
                     error={error}
@@ -125,8 +140,9 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
                     label="Повторить новый пароль"
                     type="password"
                     required={true}
+                    validatePassword
                     value={formData.confirmPassword}
-                    onChange={(value) => handleFieldChange("confirmPassword", value)}
+                    onChange={(value, isValid) => handleFieldChange("confirmPassword", value, isValid)}
                     placeholder="Повторите новый пароль"
                     fullWidth
                     hideChangePassword

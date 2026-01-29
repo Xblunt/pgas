@@ -8,16 +8,22 @@ import { ButtonVariant } from "@/models/types";
 
 interface SignUpFormProps {
     data: CreateUser;
-    onChange: (field: keyof CreateUser, value: string) => void;
+    onChange: (field: keyof CreateUser, value: string, isValid?: boolean) => void;
     onSubmit: () => void;
     onSwitchToLogin: () => void;
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = (props) => {
     const [isFormValid, setIsFormValid] = useState(false);
+    const [validFields, setValidFields] = useState({
+        email: true,
+        phone: true,
+        date: true,
+        password: true
+    });
 
     useEffect(() => {
-        const isValid = Boolean(
+        const allFilled = Boolean(
             props.data.name?.trim() &&
             props.data.second_name?.trim() &&
             props.data.email?.trim() &&
@@ -27,8 +33,27 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
             props.data.gradebook_number?.trim()
         );
 
-        setIsFormValid(isValid);
-    }, [props.data]);
+        const allValid = validFields.email && validFields.phone && validFields.date && validFields.password;
+
+        setIsFormValid(allFilled && allValid);
+    }, [props.data, validFields]);
+
+    const handleFieldChange = (field: keyof CreateUser, value: string, isValid?: boolean) => {
+        props.onChange(field, value);
+        
+        if (field === 'email' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, email: isValid }));
+        }
+        if (field === 'phone_number' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, phone: isValid }));
+        }
+        if (field === 'birth_date' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, date: isValid }));
+        }
+        if (field === 'password' && isValid !== undefined) {
+            setValidFields(prev => ({ ...prev, password: isValid }));
+        }
+    };
 
     return (
         <Form onSubmit={(e: any) => e.preventDefault()}>
@@ -61,7 +86,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
             <DefaultInput
                 label="Номер зачётной книжки"
                 value={props.data.gradebook_number}
-                onChange={(value) =>props. onChange("gradebook_number", value)}
+                onChange={(value) => props.onChange("gradebook_number", value)}
                 placeholder="Введите номер зачётной книжки"
                 fullWidth
                 required
@@ -70,7 +95,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
             <DefaultInput
                 label="Дата рождения"
                 value={props.data.birth_date}
-                onChange={(value) => props.onChange("birth_date", value)}
+                onChange={(value, isValid) => handleFieldChange("birth_date", value, isValid)}
                 placeholder="dd.mm.yyyy"
                 fullWidth
                 mask="date"
@@ -82,7 +107,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
                 type="email"
                 value={props.data.email}
                 validateEmail={true}
-                onChange={(value) => props.onChange("email", value)}
+                onChange={(value, isValid) => handleFieldChange("email", value, isValid)}
                 placeholder="example@email.com"
                 fullWidth
                 required
@@ -91,7 +116,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
             <DefaultInput
                 label="Номер телефона"
                 value={props.data.phone_number}
-                onChange={(value) => props.onChange("phone_number", value)}
+                onChange={(value, isValid) => handleFieldChange("phone_number", value, isValid)}
                 placeholder="+7 (___) ___-__-__"
                 fullWidth
                 mask="phone"
@@ -102,15 +127,21 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
                 label="Пароль"
                 type="password"
                 value={props.data.password}
-                onChange={(value) => props.onChange("password", value)}
+                onChange={(value, isValid) => handleFieldChange("password", value, isValid)}
                 placeholder="Введите пароль"
                 fullWidth
+                validatePassword
                 hideChangePassword
                 isPassword
                 required
             />
 
-            <SubmitButton variant={ButtonVariant.PRIMARY} onClick={props.onSubmit} fullWidth disabled={!isFormValid}>
+            <SubmitButton 
+                variant={ButtonVariant.PRIMARY} 
+                onClick={props.onSubmit} 
+                fullWidth 
+                disabled={!isFormValid}
+            >
                 Зарегистрироваться
             </SubmitButton>
 
