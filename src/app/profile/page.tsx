@@ -9,8 +9,8 @@ import { ButtonVariant } from "@/models/types";
 import { ChangePasswordForm } from "../auth/components";
 import Loader from "@/components/loader";
 import { useStores } from "@/hooks/useStores";
-
-const STORAGE_KEY = "pgas_profile";
+import { useToast } from "../ToastProvider";
+import { observer } from "mobx-react-lite";
 
 const emptyProfile: CreateUser = {
     name: "",
@@ -24,12 +24,14 @@ const emptyProfile: CreateUser = {
 };
 
 const ProfilePage: React.FC = () => {
-    const { profileStore } = useStores();
+    const { profileStore, authStore } = useStores();
+    const { showToast } = useToast();
+
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [profile, setProfile] = useState<CreateUser>({ ...emptyProfile });
     const [snapshot, setSnapshot] = useState<CreateUser>({ ...emptyProfile });
     const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
-    
+
     const [validFields, setValidFields] = useState({
         email: true,
         phone: true,
@@ -37,55 +39,57 @@ const ProfilePage: React.FC = () => {
     });
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
+        profileStore.loadMe();
+    }, [profileStore]);
 
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-            setProfile({ ...emptyProfile });
-            setSnapshot({ ...emptyProfile });
-            return;
-        }
+    useEffect(() => {
+        if (!profileStore.profile) return;
+        if (isEditMode) return;
 
-        try {
-            const parsed = JSON.parse(raw) as Partial<CreateUser>;
-            const merged: CreateUser = {
-                ...emptyProfile,
-                ...parsed,
-            };
-            setProfile(merged);
-            setSnapshot(merged);
-            
-            setValidFields({
-                email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(merged.email),
-                phone: merged.phone_number.length === 18,
-                date: merged.birth_date.length === 10,
-            });
-        } catch {
-            setProfile({ ...emptyProfile });
-            setSnapshot({ ...emptyProfile });
-        }
-    }, []);
+        const merged: CreateUser = {
+            ...emptyProfile,
+            name: profileStore.profile.name || "",
+            second_name: profileStore.profile.second_name || "",
+            patronymic: profileStore.profile.patronymic || "",
+            gradebook_number: profileStore.profile.gradebook_number || "",
+            birth_date: profileStore.profile.birth_date || "",
+            email: profileStore.profile.email || "",
+            phone_number: profileStore.profile.phone_number || "",
+            password: "",
+        };
+
+        setProfile(merged);
+        setSnapshot(merged);
+
+        setValidFields({
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(merged.email),
+            phone: merged.phone_number.length === 18,
+            date: merged.birth_date.length === 10,
+        });
+    }, [profileStore.profile, isEditMode]);
 
     const handleChange = (field: keyof CreateUser, value: string, isValid?: boolean) => {
         setProfile((prev) => ({
             ...prev,
             [field]: value,
         }));
-        
-        if (field === 'email' && isValid !== undefined) {
-            setValidFields(prev => ({ ...prev, email: isValid }));
+
+        if (field === "email" && isValid !== undefined) {
+            setValidFields((prev) => ({ ...prev, email: isValid }));
         }
-        if (field === 'phone_number' && isValid !== undefined) {
-            setValidFields(prev => ({ ...prev, phone: isValid }));
+        if (field === "phone_number" && isValid !== undefined) {
+            setValidFields((prev) => ({ ...prev, phone: isValid }));
         }
-        if (field === 'birth_date' && isValid !== undefined) {
-            setValidFields(prev => ({ ...prev, date: isValid }));
+        if (field === "birth_date" && isValid !== undefined) {
+            setValidFields((prev) => ({ ...prev, date: isValid }));
         }
     };
 
     const hasRequiredFilled = useMemo(() => {
         return Boolean(
             profile.name.trim() &&
+            profile.second_name.trim() &&
+            profile.gradebook_number.trim() &&
             profile.email.trim() &&
             profile.phone_number.trim() &&
             profile.birth_date.trim()
@@ -113,12 +117,10 @@ const ProfilePage: React.FC = () => {
         });
     };
 
-    const handleSave = () => {
-        if (typeof window !== "undefined") {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-        }
-        setSnapshot(profile);
+    const handleSave = async () => {
+        await profileStore.updateMe(profile);
         setIsEditMode(false);
+        showToast("Профиль обновлён", "success");
     };
 
     const disabled = !isEditMode;
@@ -138,30 +140,28 @@ const ProfilePage: React.FC = () => {
                     disabled: !canSave,
                 },
             ];
-        } else {
-            return [
-                {
-                    text: "Редактировать",
-                    variant: ButtonVariant.PRIMARY,
-                    onClick: handleEdit,
-                },
-            ];
         }
-    }, [isEditMode, canSave]);
+        return [
+            {
+                text: "Редактировать",
+                variant: ButtonVariant.PRIMARY,
+                onClick: handleEdit,
+            },
+        ];
+    }, [isEditMode, canSave, handleCancel, handleSave]);
 
-    const handleChangePassword = (newPassword: string) => {
+    const handleChangePassword = async (newPassword: string) => {
+        await authStore.changePassword(newPassword);
         setViewChangePasswordForm(false);
-        console.log("newPassword", newPassword);
-    }
+        showToast("Пароль успешно изменён", "success");
+    };
 
-    if (profileStore.isLoading) return <Loader />
+    if (!profileStore.isLoaded || profileStore.isLoading) return <Loader />;
 
     return (
         <div className="page">
-            <Toolbar 
-                title="Личный кабинет" 
-                buttons={toolbarButtons}
-            />
+            <Toolbar title="Личный кабинет" buttons={toolbarButtons} />
+
             <Card>
                 <FormGrid>
                     <DefaultInput
@@ -240,9 +240,9 @@ const ProfilePage: React.FC = () => {
                     <DefaultInput
                         label="Пароль"
                         type="password"
-                        value={profile.password}
-                        onChange={(value) => handleChange("password", value)}
-                        placeholder="Введите пароль"
+                        value="********"
+                        onChange={() => {}}
+                        placeholder="********"
                         fullWidth
                         onChangePassword={() => setViewChangePasswordForm(true)}
                         hideViewPassword
@@ -252,9 +252,12 @@ const ProfilePage: React.FC = () => {
                     />
                 </FormGrid>
             </Card>
-            {viewChangePasswordForm && <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} />}
+
+            {viewChangePasswordForm && (
+                <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} />
+            )}
         </div>
     );
 };
 
-export default ProfilePage;
+export default observer(ProfilePage);

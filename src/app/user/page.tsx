@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { observer } from "mobx-react-lite";
 import { useStores } from "@/hooks/useStores";
 import { SectionTitle, AchievementsBlock, DividerSpace } from "./page.styles";
 import { DropdownBlock } from "@/components/blocks";
@@ -9,6 +9,7 @@ import DefaultBlock from "@/components/blocks/DefaultBlock/DefaultBlock";
 import { AchievementFormState, DropdownBlockItem } from "@/models/types";
 import { CreateAchievementForm } from "./components";
 import Loader from "@/components/loader";
+import { useToast } from "@/app/ToastProvider";
 
 type AchievementGroup = {
     uuid: string;
@@ -17,17 +18,28 @@ type AchievementGroup = {
     items: DropdownBlockItem[];
 };
 
-const mockFio = "Иванов Иван Иванович";
-
-const randomTexts = [
-    "Участие в научной конференции кафедры",
-    "Победа в олимпиаде по дисциплине",
-    "Организация мероприятия факультета",
-    "Публикация статьи в сборнике",
-    "Волонтерская деятельность в университете",
+export const initialGroups: AchievementGroup[] = [
+    {
+        uuid: "g1",
+        title: "Статья",
+        subtitle: "Публикации",
+        items: [],
+    },
+    {
+        uuid: "g2",
+        title: "Конференция",
+        subtitle: "Участия и призовые места",
+        items: [],
+    },
+    {
+        uuid: "g3",
+        title: "Общественная деятельность",
+        subtitle: "Волонтёрство и мероприятия",
+        items: [],
+    },
 ];
 
-const pickRandomText = () => randomTexts[Math.floor(Math.random() * randomTexts.length)];
+const mockFio = "Иванов Иван Иванович";
 
 const calcPreliminaryPoints = (subcategory: string, place: string, participants: number) => {
     const baseMap: Record<string, number> = {
@@ -55,31 +67,6 @@ const calcActualPoints = (preliminary: number) => {
     return Math.max(0, Math.round(preliminary * 0.4));
 };
 
-export const initialGroups: AchievementGroup[] = [
-    {
-        uuid: "g1",
-        title: "Статья",
-        subtitle: "Публикации",
-        items: [
-            { uuid: "a1", title: mockFio, subtitle: pickRandomText(), points: 7, tags: ["ВАК", "Без места"] },
-            { uuid: "a2", title: mockFio, subtitle: pickRandomText(), points: 5, tags: ["ВАК", "2 место"] },
-            { uuid: "a3", title: mockFio, subtitle: pickRandomText(), points: 6, tags: ["Scopus", "Без места"] },
-        ],
-    },
-    {
-        uuid: "g2",
-        title: "Конференция",
-        subtitle: "Участия и призовые места",
-        items: [],
-    },
-    {
-        uuid: "g3",
-        title: "Общественная деятельность",
-        subtitle: "Волонтерство и мероприятия",
-        items: [],
-    },
-];
-
 const createEmptyForm = (category: string): AchievementFormState => ({
     category,
     subcategory: "",
@@ -95,28 +82,29 @@ const createEmptyForm = (category: string): AchievementFormState => ({
     description: "",
 });
 
-const UserPage: React.FC = () => {
-    const router = useRouter();
-    const { authStore, userStore } = useStores();
+const mapSubcategoryValueToExpectedName = (v: string) => {
+    if (v === "vak") return "ВАК";
+    if (v === "scopus") return "Scopus";
+    if (v === "wos") return "Web of Science";
+    return "";
+};
 
-    const [groups, setGroups] = useState<AchievementGroup[]>(initialGroups);
-    const [openGroupIds, setOpenGroupIds] = useState<Record<string, boolean>>({
-        g1: true,
-        g2: false,
-        g3: false,
-    });
+const UserPage: React.FC = () => {
+    const { userStore, achievementStore } = useStores();
+    const { showToast } = useToast();
+
+    const [openGroupIds, setOpenGroupIds] = useState<Record<string, boolean>>({});
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
     const [activeGroupId, setActiveGroupId] = useState<string>("");
     const [editingItemId, setEditingItemId] = useState<string>("");
     const [form, setForm] = useState<AchievementFormState>(createEmptyForm(""));
-
-    // useEffect(() => {
-    //     if (!authStore.token) router.push("/auth");
-    // }, [authStore.token, router]);
+    const [autoCalc, setAutoCalc] = useState<boolean>(true);
 
     useEffect(() => {
+        if (!autoCalc) return;
+
         const preliminary = calcPreliminaryPoints(form.subcategory, form.place, form.participants);
         const actual = calcActualPoints(preliminary);
 
@@ -125,150 +113,199 @@ const UserPage: React.FC = () => {
             preliminaryPoints: preliminary,
             actualPoints: actual,
         }));
-    }, [form.subcategory, form.place, form.participants]);
+    }, [autoCalc, form.subcategory, form.place, form.participants]);
 
-    const leaderRank = 1;
-    const currentRank = 10;
+    useEffect(() => {
+        achievementStore.loadUserPageData().catch(() => {});
+    }, [achievementStore]);
 
-    const leaderPrimary = "Петров Петр Петрович";
-    const leaderSecondary = "Факультет ИТ, группа ИВТ-21";
+    const achievements = achievementStore.achievements;
+    const parents = achievementStore.parentCategories;
 
-    const currentPrimary = mockFio;
-    const currentSecondary = "Факультет ИТ, группа ИВТ-21";
+    const achievementMap = useMemo(() => {
+        const m: Record<string, any> = {};
+        for (const a of achievements) m[a.uuid] = a;
+        return m;
+    }, [achievements]);
+
+    const groups: AchievementGroup[] = useMemo(() => {
+        const list: AchievementGroup[] = (parents || []).map((p) => ({
+            uuid: p.uuid,
+            title: p.name,
+            subtitle: p.comment || "",
+            items: [],
+        }));
+
+        const byName: Record<string, AchievementGroup> = {};
+        for (const g of list) byName[g.title] = g;
+
+        for (const a of achievements || []) {
+            const groupName = a.category_name || "Другое";
+            if (!byName[groupName]) {
+                byName[groupName] = {
+                    uuid: `unknown:${groupName}`,
+                    title: groupName,
+                    subtitle: "",
+                    items: [],
+                };
+                list.push(byName[groupName]);
+            }
+
+            byName[groupName].items.push({
+                uuid: a.uuid,
+                title: mockFio,
+                subtitle: a.comment || "",
+                points: Number(a.point_amount || 0),
+                tags: [a.status || ""].filter(Boolean),
+            });
+        }
+
+        return list;
+    }, [parents, achievements]);
+
+    useEffect(() => {
+        setOpenGroupIds((prev) => {
+            const next: Record<string, boolean> = { ...prev };
+            for (const g of groups) {
+                if (next[g.uuid] === undefined) {
+                    next[g.uuid] = (g.items?.length || 0) > 0;
+                }
+            }
+            return next;
+        });
+    }, [groups]);
 
     const toggleGroup = (groupUuid: string) => {
         setOpenGroupIds((prev) => ({ ...prev, [groupUuid]: !prev[groupUuid] }));
     };
 
-    const openCreateModal = (groupUuid: string) => {
+    const openCreateModal = async (groupUuid: string) => {
         const group = groups.find((g) => g.uuid === groupUuid);
         if (!group) return;
 
+        await achievementStore.ensureChildCategoriesLoaded(groupUuid);
+
         setModalMode("create");
+        setAutoCalc(true);
         setActiveGroupId(groupUuid);
         setEditingItemId("");
         setForm(createEmptyForm(group.title));
         setIsModalOpen(true);
     };
 
-    const openEditModal = (groupUuid: string, itemUuid: string) => {
+    const openEditModal = async (groupUuid: string, itemUuid: string) => {
         const group = groups.find((g) => g.uuid === groupUuid);
         if (!group) return;
 
-        const item = group.items.find((x) => x.uuid === itemUuid);
-        if (!item) return;
+        await achievementStore.ensureChildCategoriesLoaded(groupUuid);
+
+        const a = achievementMap[itemUuid];
 
         setModalMode("edit");
+        setAutoCalc(false);
         setActiveGroupId(groupUuid);
         setEditingItemId(itemUuid);
 
         setForm({
             ...createEmptyForm(group.title),
-            description: item.subtitle,
-            preliminaryPoints: item.points,
-            actualPoints: calcActualPoints(item.points),
-            subcategory: "",
-            place: "",
-            participants: 1,
+            description: a?.comment || "",
+            link: a?.attachment_link || "",
+            preliminaryPoints: Number(a?.point_amount || 0),
+            actualPoints: calcActualPoints(Number(a?.point_amount || 0)),
             status: "pending",
         });
 
         setIsModalOpen(true);
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-    };
+    const closeModal = () => setIsModalOpen(false);
 
     const handleFormChange = (patch: Partial<AchievementFormState>) => {
+        if (modalMode === "edit") {
+            if (patch.subcategory !== undefined || patch.place !== undefined || patch.participants !== undefined) {
+                setAutoCalc(true);
+            }
+        }
         setForm((prev) => ({ ...prev, ...patch }));
     };
 
-    const tagsFromForm = () => {
-        const subLabel =
-            form.subcategory === "vak"
-                ? "ВАК"
-                : form.subcategory === "scopus"
-                    ? "Scopus"
-                    : form.subcategory === "wos"
-                        ? "Web of Science"
-                        : "Подкатегория";
+    const buildCategoryUuidsForRequest = () => {
+        const parentUuid = activeGroupId;
+        const uuids: string[] = [];
 
-        const placeLabel =
-            form.place === "1"
-                ? "1 место"
-                : form.place === "2"
-                    ? "2 место"
-                    : form.place === "3"
-                        ? "3 место"
-                        : "Без места";
+        if (parentUuid) uuids.push(parentUuid);
 
-        return [subLabel, placeLabel];
+        const expectedChildName = mapSubcategoryValueToExpectedName(form.subcategory);
+        const childs = achievementStore.childCategoriesByParent[parentUuid] || [];
+
+        if (expectedChildName) {
+            const found = childs.find((c) => (c.name || "").trim() === expectedChildName);
+            if (found?.uuid) uuids.push(found.uuid);
+        }
+
+        return uuids;
     };
 
-    const saveAchievement = () => {
-        const group = groups.find((g) => g.uuid === activeGroupId);
-        if (!group) return;
+    const saveAchievement = async () => {
+        if (!activeGroupId) return;
 
-        const subtitle = form.description.trim() ? form.description.trim() : pickRandomText();
-        const points = form.preliminaryPoints;
+        const category_uuids = buildCategoryUuidsForRequest();
+
+        const payload = {
+            uuid: modalMode === "edit" ? editingItemId : undefined,
+            attachment_link: (form.link || "").trim(),
+            comment: (form.description || "").trim(),
+            category_uuids,
+        };
+
+        if (!payload.attachment_link) return;
 
         if (modalMode === "create") {
-            const newItem: DropdownBlockItem = {
-                uuid: `a${Date.now()}`,
-                title: mockFio,
-                subtitle,
-                points: Math.max(0, points),
-                tags: tagsFromForm(),
-            };
-
-            setGroups((prev) =>
-                prev.map((g) => (g.uuid === activeGroupId ? { ...g, items: [...g.items, newItem] } : g))
-            );
-            setOpenGroupIds((prev) => ({ ...prev, [activeGroupId]: true }));
-            setIsModalOpen(false);
-            return;
+            await achievementStore.createAchievement(payload);
+            showToast("Сохранено", "success");
+        } else {
+            await achievementStore.updateAchievement(payload);
+            showToast("Сохранено", "success");
         }
 
-        if (modalMode === "edit" && editingItemId) {
-            setGroups((prev) =>
-                prev.map((g) => {
-                    if (g.uuid !== activeGroupId) return g;
-                    return {
-                        ...g,
-                        items: g.items.map((it) =>
-                            it.uuid === editingItemId
-                                ? { ...it, subtitle, points: Math.max(0, points), tags: tagsFromForm() }
-                                : it
-                        ),
-                    };
-                })
-            );
-            setIsModalOpen(false);
-        }
+        setIsModalOpen(false);
     };
 
-    const handleDelete = (groupUuid: string, itemUuid: string) => {
-        setGroups((prev) =>
-            prev.map((g) => (g.uuid === groupUuid ? { ...g, items: g.items.filter((x) => x.uuid !== itemUuid) } : g))
-        );
+    const handleDelete = async (groupUuid: string, itemUuid: string) => {
+        await achievementStore.deleteAchievement(itemUuid);
+        showToast("Удалено", "success");
     };
 
-    const orderedGroups = useMemo(() => groups, [groups]);
+    const modalTitle = modalMode === "create" ? "Добавить достижение" : "Редактировать достижение";
 
-    const modalTitle = modalMode === "create" ? "Добавить публикацию" : "Редактировать публикацию";
+    const leaderRank = 1;
+    const currentRank = 10;
+    const leaderPrimary = "Петров Петр Петрович";
+    const leaderSecondary = "Факультет ИТ, группа ИВТ-21";
+    const currentPrimary = mockFio;
+    const currentSecondary = "Факультет ИТ, группа ИВТ-21";
 
-    if (userStore.isLoading) return <Loader />
+    if (userStore.isLoading || achievementStore.isLoading) return <Loader />;
 
     return (
         <div className="page">
-            <DefaultBlock title={"Лидер рейтинга:"} number={leaderRank} primaryText={leaderPrimary} secondaryText={leaderSecondary} />
-            <DefaultBlock title={"Текущее место в рейтинге:"} number={currentRank} primaryText={currentPrimary} secondaryText={currentSecondary}/>
+            <DefaultBlock
+                title={"Лидер рейтинга:"}
+                number={leaderRank}
+                primaryText={leaderPrimary}
+                secondaryText={leaderSecondary}
+            />
+            <DefaultBlock
+                title={"Текущее место в рейтинге:"}
+                number={currentRank}
+                primaryText={currentPrimary}
+                secondaryText={currentSecondary}
+            />
 
             <SectionTitle>Ваши достижения</SectionTitle>
 
             <AchievementsBlock>
-                {orderedGroups.map((group, idx) => (
+                {groups.map((group, idx) => (
                     <React.Fragment key={group.uuid}>
                         <DropdownBlock
                             title={group.title}
@@ -280,12 +317,13 @@ const UserPage: React.FC = () => {
                             onEdit={(uuid) => openEditModal(group.uuid, uuid)}
                             onDelete={(uuid) => handleDelete(group.uuid, uuid)}
                         />
-                        {idx < orderedGroups.length - 1 && <DividerSpace />}
+                        {idx < groups.length - 1 && <DividerSpace />}
                     </React.Fragment>
                 ))}
             </AchievementsBlock>
 
-            {isModalOpen && <CreateAchievementForm
+            {isModalOpen && (
+                <CreateAchievementForm
                     value={form}
                     onChange={handleFormChange}
                     categoryDisabled
@@ -294,9 +332,11 @@ const UserPage: React.FC = () => {
                     onSave={saveAchievement}
                     onClose={closeModal}
                     title={modalTitle}
-            />}
+                    loading={achievementStore.isMutating}
+                />
+            )}
         </div>
     );
 };
 
-export default UserPage;
+export default observer(UserPage);

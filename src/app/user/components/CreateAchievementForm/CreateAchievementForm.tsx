@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import { DefaultInput, DropdownInput, TextareaInput } from "@/components/inputs";
 import { FileRow, FileButton, HiddenFileInput } from "./CreateAchievementForm.styles";
 import { ButtonVariant, ButtonSize, AchievementFormState } from "@/models/types";
@@ -15,6 +15,7 @@ export interface CreateAchievementFormProps {
     title: string;
     onClose: () => void;
     onSave: () => void;
+    loading?: boolean;
 }
 
 const subcategoryOptions = [
@@ -43,7 +44,6 @@ const statusOptions = [
 ];
 
 const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
-    const [loading, setLoading] = useState<boolean>(false)
     const fileRef = useRef<HTMLInputElement>(null);
 
     const selectedSubcategoryLabel = useMemo(() => {
@@ -74,7 +74,7 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
         <Modal
             title={props.title}
             fullWidth
-            loading={loading}
+            loading={!!props.loading}
             onClose={props.onClose}
             maxWidth={640}
             buttons={[

@@ -42,6 +42,7 @@ import { observer } from "mobx-react-lite";
 import DefaultButton from "../buttons/DefaultButton";
 import { usePathname, useRouter } from "next/navigation";
 import { ButtonSize, ButtonVariant } from "@/models/types";
+import { useStores } from "@/hooks/useStores";
 
 const profileIcon = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -66,11 +67,13 @@ const Header: React.FC = observer(() => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
+  const { authStore } = useStores();
+
   useEffect(() => {
     if (!isMobileMenuOpen) return;
     const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    
+    document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -115,7 +118,9 @@ const Header: React.FC = observer(() => {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
-    router.push("/auth");
+    setIsMobileMenuOpen(false);
+    authStore.logout();
+    router.replace("/auth");
   };
 
   const handleMobileMenuToggle = () => {
@@ -127,7 +132,9 @@ const Header: React.FC = observer(() => {
   };
 
   const handleMobileLogoutClick = () => {
-    router.push("/auth");
+    setIsMobileMenuOpen(false);
+    authStore.logout();
+    router.replace("/auth");
   };
 
   const tabs = [
@@ -136,7 +143,7 @@ const Header: React.FC = observer(() => {
     { label: "Пользователи", url: "/user" },
   ];
 
-  if (pathname === '/auth') return null;
+  if (pathname === "/auth") return null;
 
   const hasTabs = tabs.length > 0;
 
@@ -149,28 +156,26 @@ const Header: React.FC = observer(() => {
             </LogoContainer>
 
             {hasTabs && (
-              <TabsContainer>
-                <TabsWrapper>
-                  {tabs.map((tab, index) => (
-                      <React.Fragment key={index}>
-                        <TabItem $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
-                          <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
-                          {pathname === tab.url && <TabIndicator />}
-                        </TabItem>
+                <TabsContainer>
+                  <TabsWrapper>
+                    {tabs.map((tab, index) => (
+                        <React.Fragment key={index}>
+                          <TabItem $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
+                            <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
+                            {pathname === tab.url && <TabIndicator />}
+                          </TabItem>
 
-                        {index < tabs.length - 1 && <TabDivider />}
-                      </React.Fragment>
-                  ))}
-                </TabsWrapper>
-              </TabsContainer>
+                          {index < tabs.length - 1 && <TabDivider />}
+                        </React.Fragment>
+                    ))}
+                  </TabsWrapper>
+                </TabsContainer>
             )}
 
             <ProfileContainer ref={dropdownRef}>
-                  <ProfileButton onClick={handleProfileClick} $isOpen={isDropdownOpen}>
-                    <ProfileIcon 
-                      dangerouslySetInnerHTML={{ __html: profileIcon }}
-                    />
-                  </ProfileButton>
+              <ProfileButton onClick={handleProfileClick} $isOpen={isDropdownOpen}>
+                <ProfileIcon dangerouslySetInnerHTML={{ __html: profileIcon }} />
+              </ProfileButton>
 
                   {isDropdownOpen && (
                       <DropdownMenu>
@@ -197,52 +202,40 @@ const Header: React.FC = observer(() => {
                 </ProfileContainer>
 
             {!hasTabs && (
-              <MobileProfileActions>
-                <MobileProfileIcon 
-                  onClick={handleMobileProfileClick}
-                  dangerouslySetInnerHTML={{ __html: profileIcon }}
-                />
-                <MobileLogoutButton 
-                  onClick={handleMobileLogoutClick}
-                  dangerouslySetInnerHTML={{ __html: logoutIcon }}
-                />
-              </MobileProfileActions>
+                <MobileProfileActions>
+                  <MobileProfileIcon onClick={handleMobileProfileClick} dangerouslySetInnerHTML={{ __html: profileIcon }} />
+                  <MobileLogoutButton onClick={handleMobileLogoutClick} dangerouslySetInnerHTML={{ __html: logoutIcon }} />
+                </MobileProfileActions>
             )}
 
             {hasTabs && (
-              <MobileMenuButton onClick={handleMobileMenuToggle} $isOpen={isMobileMenuOpen}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </MobileMenuButton>
+                <MobileMenuButton onClick={handleMobileMenuToggle} $isOpen={isMobileMenuOpen}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </MobileMenuButton>
             )}
           </HeaderContent>
         </HeaderContainer>
 
         {hasTabs && isMobileMenuOpen && (
-          <MobileMenuContainer ref={mobileMenuRef}>
-            <MobileMenuOverlay onClick={handleMobileMenuToggle} />
-            <MobileMenuContent>
-              <MobileMenuHeader>
-                <MobileMenuCloseButton onClick={handleMobileMenuToggle}>
-                  <span></span>
-                  <span></span>
-                </MobileMenuCloseButton>
-              </MobileMenuHeader>
+            <MobileMenuContainer ref={mobileMenuRef}>
+              <MobileMenuOverlay onClick={handleMobileMenuToggle} />
+              <MobileMenuContent>
+                <MobileMenuHeader>
+                  <MobileMenuCloseButton onClick={handleMobileMenuToggle}>
+                    <span></span>
+                    <span></span>
+                  </MobileMenuCloseButton>
+                </MobileMenuHeader>
 
-              <MobileTabsContainer>
-                {tabs.map((tab, index) => (
-                  <MobileTabItem 
-                    key={index} 
-                    $isActive={pathname === tab.url}
-                    onClick={() => handleTabClick(tab.url)}
-                  >
-                    <MobileTabLabel $isActive={pathname === tab.url}>
-                      {tab.label}
-                    </MobileTabLabel>
-                  </MobileTabItem>
-                ))}
-              </MobileTabsContainer>
+                <MobileTabsContainer>
+                  {tabs.map((tab, index) => (
+                      <MobileTabItem key={index} $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
+                        <MobileTabLabel $isActive={pathname === tab.url}>{tab.label}</MobileTabLabel>
+                      </MobileTabItem>
+                  ))}
+                </MobileTabsContainer>
 
               <MobileProfileSection>
                 <MobileProfileInfo>

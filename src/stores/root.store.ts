@@ -1,4 +1,5 @@
-import { AuthStore, CategoryStore, ProfileStore, RaitingStore, UserStore} from "@/stores";
+import { AuthStore, CategoryStore, ProfileStore, RaitingStore, UserStore } from "@/stores";
+import AchievementStore from "@/stores/achievement.store";
 
 class RootStore {
   userStore: UserStore;
@@ -6,6 +7,7 @@ class RootStore {
   profileStore: ProfileStore;
   categoryStore: CategoryStore;
   raitingStore: RaitingStore;
+  achievementStore: AchievementStore;
 
   constructor() {
     this.userStore = new UserStore();
@@ -13,6 +15,7 @@ class RootStore {
     this.profileStore = new ProfileStore();
     this.categoryStore = new CategoryStore();
     this.raitingStore = new RaitingStore();
+    this.achievementStore = new AchievementStore();
   }
 }
 

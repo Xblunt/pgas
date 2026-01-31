@@ -1,59 +1,37 @@
 "use client";
 
-import { createContext, ReactNode, FC, useEffect, useState } from "react";
-import { AuthStore, UserStore, RootStore, CategoryStore, ProfileStore, RaitingStore } from "@/stores";
-import { AUTH_STORE, CATEGORY_STORE, PROFILE_STORE, RAITING_STORE, USER_STORE } from "@/stores/identifiers";
+import React, { createContext, useEffect, useMemo, useState } from "react";
+import RootStore from "@/stores/root.store";
 import Injector from "@/utils/injector";
+import { AUTH_STORE } from "@/stores/identifiers";
 
+export const StoreContext = createContext<RootStore | undefined>(undefined);
 
-interface StoreContextValue {
-  rootStore: RootStore;
-  authStore: AuthStore;
-  userStore: UserStore;
-  profileStore: ProfileStore;
-  categoryStore: CategoryStore;
-  raitingStore: RaitingStore;
-}
+type Props = {
+  children: React.ReactNode;
+};
 
-export const StoreContext = createContext<StoreContextValue | undefined>(undefined);
+const StoreProvider: React.FC<Props> = ({ children }) => {
+  const [isReady, setIsReady] = useState(false);
 
-interface StoreProviderProps {
-  children: ReactNode;
-}
-
-const StoreProvider: FC<StoreProviderProps> = ({ children }) => {
-  const [rootStore, setRootStore] = useState<StoreContextValue | undefined>();
-
+  const store = useMemo(() => new RootStore(), []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const rootStr = new RootStore();
-      setRootStore({
-        rootStore: rootStr,
-        authStore: rootStr.authStore,
-        userStore: rootStr.userStore,
-        profileStore: rootStr.profileStore,
-        categoryStore: rootStr.categoryStore,
-        raitingStore: rootStr.raitingStore,
-      });
-    }
-  }, []);
+    Injector.register(AUTH_STORE, store.authStore);
 
-  if (rootStore) {
-    Injector.register(AUTH_STORE, rootStore.authStore);
-    Injector.register(USER_STORE, rootStore.userStore);
-    Injector.register(PROFILE_STORE, rootStore.profileStore);
-    Injector.register(CATEGORY_STORE, rootStore.categoryStore);
-    Injector.register(RAITING_STORE, rootStore.raitingStore);
+    store.authStore.hydrate();
+    setIsReady(true);
 
-    return (
-      <StoreContext.Provider value={{ ...rootStore }}>
-        {children}
-      </StoreContext.Provider>
-    );
+    return () => {
+      store.authStore.dispose();
+    };
+  }, [store]);
+
+  if (!isReady || !store.authStore.isHydrated) {
+    return null;
   }
 
-  return null;
+  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 };
 
 export default StoreProvider;
