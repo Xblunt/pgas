@@ -43,6 +43,7 @@ import DefaultButton from "../buttons/DefaultButton";
 import { usePathname, useRouter } from "next/navigation";
 import { ButtonSize, ButtonVariant } from "@/models/types";
 import { useStores } from "@/hooks/useStores";
+import { ROOT, USER_DATA } from "@/services/axios/ApiClient";
 
 const profileIcon = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -60,14 +61,39 @@ const logoutIcon = `
 `;
 
 const Header: React.FC = observer(() => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { authStore } = useStores();
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [root, setRoot] = useState<boolean>(false);
+  const [username, setUsername] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const { authStore } = useStores();
+  useEffect(() => {
+    const checkUser = () => {
+      const isRoot = localStorage.getItem(ROOT) === "true";
+      setRoot(isRoot);
+      const userDataString = localStorage.getItem(USER_DATA);
+      setUsername(userDataString);
+    };
+
+    checkUser();
+
+    const handleStorageChange = () => {
+      checkUser();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    
+    const interval = setInterval(checkUser, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -127,145 +153,142 @@ const Header: React.FC = observer(() => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const handleMobileProfileClick = () => {
-    router.push("/profile");
-  };
-
-  const handleMobileLogoutClick = () => {
-    setIsMobileMenuOpen(false);
-    authStore.logout();
-    router.replace("/auth");
-  };
-
   const tabs = [
     { label: "Категории", url: "/admin/category" },
     { label: "Рейтинг", url: "/admin/raiting" },
-    { label: "Пользователи", url: "/user" },
   ];
 
   if (pathname === "/auth") return null;
 
-  const hasTabs = tabs.length > 0;
-
   return (
-      <>
-        <HeaderContainer>
-          <HeaderContent>
-            <LogoContainer onClick={handleLogoClick}>
-              <LogoImage src="/vstu-logo.svg" alt="VSTU Logo" />
-            </LogoContainer>
+    <>
+      <HeaderContainer>
+        <HeaderContent>
+          <LogoContainer onClick={handleLogoClick}>
+            <LogoImage src="/vstu-logo.svg" alt="VSTU Logo" />
+          </LogoContainer>
 
-            {hasTabs && (
-                <TabsContainer>
-                  <TabsWrapper>
-                    {tabs.map((tab, index) => (
-                        <React.Fragment key={index}>
-                          <TabItem $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
-                            <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
-                            {pathname === tab.url && <TabIndicator />}
-                          </TabItem>
+          {root && (
+            <TabsContainer>
+              <TabsWrapper>
+                {tabs.map((tab, index) => (
+                  <React.Fragment key={index}>
+                    <TabItem $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
+                      <TabLabel $isActive={pathname === tab.url}>{tab.label}</TabLabel>
+                      {pathname === tab.url && <TabIndicator />}
+                    </TabItem>
 
-                          {index < tabs.length - 1 && <TabDivider />}
-                        </React.Fragment>
-                    ))}
-                  </TabsWrapper>
-                </TabsContainer>
+                    {index < tabs.length - 1 && <TabDivider />}
+                  </React.Fragment>
+                ))}
+              </TabsWrapper>
+            </TabsContainer>
+          )}
+
+          <ProfileContainer ref={dropdownRef}>
+            <ProfileButton onClick={handleProfileClick} $isOpen={isDropdownOpen}>
+              <ProfileIcon dangerouslySetInnerHTML={{ __html: profileIcon }} />
+            </ProfileButton>
+
+            {isDropdownOpen && (
+              <DropdownMenu>
+                <DropdownHeader>
+                  <DropdownTitle>{username || "Аккаунт"}</DropdownTitle>
+                  <DropdownSubtitle>{root ? "Администратор" : "Пользователь"}</DropdownSubtitle>
+                </DropdownHeader>
+
+                <DropdownButtons>
+                  <ButtonWrapper>
+                    <DefaultButton
+                      variant={ButtonVariant.PRIMARY}
+                      size={ButtonSize.MEDIUM}
+                      onClick={handleProfile}
+                      fullWidth
+                    >
+                      Личный кабинет
+                    </DefaultButton>
+                  </ButtonWrapper>
+
+                  <ButtonWrapper>
+                    <DefaultButton
+                      variant={ButtonVariant.OUTLINE}
+                      size={ButtonSize.MEDIUM}
+                      onClick={handleLogout}
+                      fullWidth
+                    >
+                      Выход
+                    </DefaultButton>
+                  </ButtonWrapper>
+                </DropdownButtons>
+              </DropdownMenu>
             )}
+          </ProfileContainer>
 
-            <ProfileContainer ref={dropdownRef}>
-              <ProfileButton onClick={handleProfileClick} $isOpen={isDropdownOpen}>
-                <ProfileIcon dangerouslySetInnerHTML={{ __html: profileIcon }} />
-              </ProfileButton>
+          {!root && (
+            <MobileProfileActions>
+              <MobileProfileIcon onClick={handleProfile} dangerouslySetInnerHTML={{ __html: profileIcon }} />
+              <MobileLogoutButton onClick={handleLogout} dangerouslySetInnerHTML={{ __html: logoutIcon }} />
+            </MobileProfileActions>
+          )}
 
-                  {isDropdownOpen && (
-                      <DropdownMenu>
-                        <DropdownHeader>
-                          <DropdownTitle>Аккаунт</DropdownTitle>
-                          <DropdownSubtitle>Управление профилем</DropdownSubtitle>
-                        </DropdownHeader>
+          {root && (
+            <MobileMenuButton onClick={handleMobileMenuToggle} $isOpen={isMobileMenuOpen}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </MobileMenuButton>
+          )}
+        </HeaderContent>
+      </HeaderContainer>
 
-                        <DropdownButtons>
-                          <ButtonWrapper>
-                            <DefaultButton variant={ButtonVariant.PRIMARY} size={ButtonSize.MEDIUM} onClick={handleProfile} fullWidth>
-                              Личный кабинет
-                            </DefaultButton>
-                          </ButtonWrapper>
+      {root && isMobileMenuOpen && (
+        <MobileMenuContainer ref={mobileMenuRef}>
+          <MobileMenuOverlay onClick={handleMobileMenuToggle} />
+          <MobileMenuContent>
+            <MobileMenuHeader>
+              <MobileMenuCloseButton onClick={handleMobileMenuToggle}>
+                <span></span>
+                <span></span>
+              </MobileMenuCloseButton>
+            </MobileMenuHeader>
 
-                          <ButtonWrapper>
-                            <DefaultButton variant={ButtonVariant.OUTLINE} size={ButtonSize.MEDIUM} onClick={handleLogout} fullWidth>
-                              Выход
-                            </DefaultButton>
-                          </ButtonWrapper>
-                        </DropdownButtons>
-                      </DropdownMenu>
-                  )}
-                </ProfileContainer>
+            <MobileTabsContainer>
+              {tabs.map((tab, index) => (
+                <MobileTabItem key={index} $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
+                  <MobileTabLabel $isActive={pathname === tab.url}>{tab.label}</MobileTabLabel>
+                </MobileTabItem>
+              ))}
+            </MobileTabsContainer>
 
-            {!hasTabs && (
-                <MobileProfileActions>
-                  <MobileProfileIcon onClick={handleMobileProfileClick} dangerouslySetInnerHTML={{ __html: profileIcon }} />
-                  <MobileLogoutButton onClick={handleMobileLogoutClick} dangerouslySetInnerHTML={{ __html: logoutIcon }} />
-                </MobileProfileActions>
-            )}
+            <MobileProfileSection>
+              <MobileProfileInfo>
+                <MobileProfileName>Аккаунт</MobileProfileName>
+                <MobileProfileSubtitle>Управление профилем</MobileProfileSubtitle>
+              </MobileProfileInfo>
 
-            {hasTabs && (
-                <MobileMenuButton onClick={handleMobileMenuToggle} $isOpen={isMobileMenuOpen}>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </MobileMenuButton>
-            )}
-          </HeaderContent>
-        </HeaderContainer>
-
-        {hasTabs && isMobileMenuOpen && (
-            <MobileMenuContainer ref={mobileMenuRef}>
-              <MobileMenuOverlay onClick={handleMobileMenuToggle} />
-              <MobileMenuContent>
-                <MobileMenuHeader>
-                  <MobileMenuCloseButton onClick={handleMobileMenuToggle}>
-                    <span></span>
-                    <span></span>
-                  </MobileMenuCloseButton>
-                </MobileMenuHeader>
-
-                <MobileTabsContainer>
-                  {tabs.map((tab, index) => (
-                      <MobileTabItem key={index} $isActive={pathname === tab.url} onClick={() => handleTabClick(tab.url)}>
-                        <MobileTabLabel $isActive={pathname === tab.url}>{tab.label}</MobileTabLabel>
-                      </MobileTabItem>
-                  ))}
-                </MobileTabsContainer>
-
-              <MobileProfileSection>
-                <MobileProfileInfo>
-                  <MobileProfileName>Аккаунт</MobileProfileName>
-                  <MobileProfileSubtitle>Управление профилем</MobileProfileSubtitle>
-                </MobileProfileInfo>
-
-                <div className="profile-buttons">
-                  <DefaultButton 
-                    variant={ButtonVariant.PRIMARY} 
-                    size={ButtonSize.MEDIUM} 
-                    onClick={handleProfile}
-                    fullWidth
-                  >
-                    Личный кабинет
-                  </DefaultButton>
-                  <DefaultButton 
-                    variant={ButtonVariant.OUTLINE} 
-                    size={ButtonSize.MEDIUM} 
-                    onClick={handleLogout}
-                    fullWidth
-                  >
-                    Выход
-                  </DefaultButton>
-                </div>
-              </MobileProfileSection>
-            </MobileMenuContent>
-          </MobileMenuContainer>
-        )}
-      </>
+              <div className="profile-buttons">
+                <DefaultButton
+                  variant={ButtonVariant.PRIMARY}
+                  size={ButtonSize.MEDIUM}
+                  onClick={handleProfile}
+                  fullWidth
+                >
+                  Личный кабинет
+                </DefaultButton>
+                <DefaultButton
+                  variant={ButtonVariant.OUTLINE}
+                  size={ButtonSize.MEDIUM}
+                  onClick={handleLogout}
+                  fullWidth
+                >
+                  Выход
+                </DefaultButton>
+              </div>
+            </MobileProfileSection>
+          </MobileMenuContent>
+        </MobileMenuContainer>
+      )}
+    </>
   );
 });
 

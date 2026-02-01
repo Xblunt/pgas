@@ -1,51 +1,71 @@
 import { HttpClient } from "./axios/HttpClient";
-
-export type ApiResponse<T> = {
-    data: T;
-    pagination?: {
-        total_records: number;
-        limit: number;
-        offset: number;
-        selected: number;
-    };
-};
-
-export type ApiSimpleAchievement = {
-    uuid: string;
-    comment: string;
-    status: string;
-    category_name: string;
-    point_amount: number;
-    attachment_link: string;
-};
-
-export type UpsertAchievementRequest = {
-    uuid?: string;
-    attachment_link: string;
-    comment: string;
-    category_uuids: string[];
-};
+import AchievementStore from "@/stores/achievement.store";
+import Injector from "@/utils/injector";
+import { ACHIEVEMENT_STORE } from "@/stores/identifiers";
+import { SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
+import { groupAchievementsByCategory } from "@/utils/achievement";
 
 class AchievementService extends HttpClient {
-    async listMy(): Promise<ApiSimpleAchievement[]> {
-        const resp = await this.get<ApiResponse<ApiSimpleAchievement[]>>("/achievement/by_token");
-        return resp?.data || [];
+    private static instance: AchievementService;
+    private _achivementStore: AchievementStore;
+
+    constructor() {
+        super();
+        this._achivementStore = Injector.get<AchievementStore>(ACHIEVEMENT_STORE);
     }
 
-    async create(payload: UpsertAchievementRequest): Promise<{ uuid: string }> {
-        const resp = await this.post<ApiResponse<{ uuid: string }>>("/achievement", payload);
-        return resp.data;
+    static getInstance(): AchievementService {
+      if (!AchievementService.instance) {
+        AchievementService.instance = new AchievementService();
+      }
+      return AchievementService.instance;
     }
 
-    async update(payload: UpsertAchievementRequest): Promise<string> {
-        const resp = await this.put<ApiResponse<string>>("/achievement", payload);
-        return resp.data;
+    async getAchievementById(achievementUuid: string): Promise<UpdateAndViewAchievement> {
+        return this.get<UpdateAndViewAchievement>(`/achievement/${achievementUuid}`)
+        .then((achievement: UpdateAndViewAchievement) => {
+            return achievement;
+        })
+        .catch((error: Error) => {
+            console.error(`Error fetching achievement ${achievementUuid}:`, error);
+            throw error;
+        });
     }
 
-    async remove(uuid: string): Promise<string> {
-        const resp = await this.delete<ApiResponse<string>>(`/achievement/${uuid}`);
-        return resp.data;
+    async getAchievementsByUserUuid(uuid: string): Promise<UserAchievement[]> {
+        return this.get<SimpleAchievement[]>(`/achievement/by_user_uuid/${uuid}`)
+        .then((achievements: SimpleAchievement[]) => {
+            const groupedAchievements = groupAchievementsByCategory(achievements);
+            return groupedAchievements;
+        })
+        .catch((error: Error) => {
+            console.error('Error fetching achievements:', error);
+            throw error;
+        });
     }
+    
+    async approveAchievement(achievementUuid: string): Promise<any> {
+        return this.get(`achievements/approve/${achievementUuid}`)
+        .then((response) => {
+            return response;
+        })
+        .catch((error: Error) => {
+            console.error(`Error approve achievement ${achievementUuid}:`, error);
+            throw error;
+        });
+    }
+
+    async rejecteAchievement(achievementUuid: string): Promise<any> {
+        return this.get(`/achievements/decline/${achievementUuid}`)
+        .then((response) => {
+            return response;
+        })
+        .catch((error: Error) => {
+            console.error(`Error decline achievement ${achievementUuid}:`, error);
+            throw error;
+        });
+    }
+    
 }
 
 export default AchievementService;

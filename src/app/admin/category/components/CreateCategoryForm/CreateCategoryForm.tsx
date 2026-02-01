@@ -3,16 +3,18 @@ import { ButtonVariant } from "@/models/types";
 import React from "react";
 import { useState } from "react";
 import { DefaultInput, NumberInput } from "@/components/inputs";
+import { Category } from "@/models/Category";
+import { CategoryService } from "@/services";
 
 export type Props = {
-    category?: any;
+    category?: Category;
     onClose: () => void;
-    onSave: (category: any) => void
 };
 
 const CreateCategoryForm: React.FC<Props> = (props) => {
+    const categoryService = CategoryService.getInstance();
     const [loading, setLoading] = useState<boolean>(false)
-    const [data, setData] = useState<any | null>(
+    const [data, setData] = useState<Category>(
         props.category || { name: '', points: 0 }
     )
 
@@ -24,7 +26,19 @@ const CreateCategoryForm: React.FC<Props> = (props) => {
     };
 
     const handleSave = () => {
-        props.onSave(data);
+        setLoading(true);
+        
+        const savePromise = props.category 
+            ? categoryService.saveCategory(data)
+            : categoryService.createCategory(data);
+        
+        savePromise
+            .then(() => {
+                props.onClose();
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     return (

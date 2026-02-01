@@ -1,5 +1,14 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { DefaultButton } from "@/components/buttons";
+
+export const spin = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
 
 export const AccordionGroup = styled.div`
   border: 1px solid var(--color-primary);
@@ -152,10 +161,50 @@ export const GroupBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 100px;
 
   @media (max-width: 768px) {
     padding: 10px;
     gap: 8px;
+    min-height: 80px;
+  }
+`;
+
+export const LoaderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100px;
+  padding: 20px 0;
+`;
+
+export const LoaderSpinner = styled.div`
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  
+  &:after {
+    content: " ";
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+    border-radius: 50%;
+    border: 3px solid var(--color-primary);
+    border-color: var(--color-primary) transparent var(--color-primary) transparent;
+    animation: ${spin} 1.2s linear infinite;
+  }
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    
+    &:after {
+      width: 26px;
+      height: 26px;
+    }
   }
 `;
 

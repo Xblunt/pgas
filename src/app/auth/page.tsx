@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   AuthContainer,
   AuthCard,
@@ -8,29 +8,17 @@ import {
   AuthIcon,
   SystemTitle,
 } from "./page.styles";
-import { CreateUser } from "@/models/User";
+import { User } from "@/models/User";
 import { SignIn } from "@/models/Auth";
 import { ChangePasswordForm, SingInForm, SingUpForm } from "./components";
 import { useRouter } from "next/navigation";
 import { useStores } from "@/hooks/useStores";
-
-function decodeJwtPayload(token: string): any | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length < 2) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64 + "===".slice((base64.length + 3) % 4);
-    const json = atob(padded);
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
+import { AuthService } from "@/services";
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
   const { authStore } = useStores();
+  const _authService = AuthService.getInstance();
 
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
@@ -40,7 +28,7 @@ const AuthPage: React.FC = () => {
     password: "",
   });
 
-  const [signUpData, setSignUpData] = useState<CreateUser>({
+  const [signUpData, setSignUpData] = useState<User>({
     name: "",
     second_name: "",
     patronymic: "",
@@ -51,27 +39,8 @@ const AuthPage: React.FC = () => {
     password: "",
   });
 
-  useEffect(() => {
-    if (!authStore.isHydrated) return;
-    if (!authStore.token) return;
-
-    const payload = decodeJwtPayload(authStore.token);
-    const isAdmin =
-        payload?.IsAdmin === true ||
-        payload?.is_admin === true ||
-        payload?.isAdmin === true;
-
-    router.replace(isAdmin ? "/admin/raiting" : "/user");
-  }, [authStore.isHydrated, authStore.token, router]);
-
   const routeAfterAuth = (access: string) => {
-    const payload = decodeJwtPayload(access);
-    const isAdmin =
-        payload?.IsAdmin === true ||
-        payload?.is_admin === true ||
-        payload?.isAdmin === true;
-
-    router.replace(isAdmin ? "/admin/raiting" : "/user");
+    router.replace(authStore.isRoot  ? "/admin/raiting" : "/user");
   };
 
   const handleSignInChange = (field: keyof SignIn, value: string) => {
@@ -81,7 +50,7 @@ const AuthPage: React.FC = () => {
     }));
   };
 
-  const handleSignUpChange = (field: keyof CreateUser, value: string) => {
+  const handleSignUpChange = (field: keyof User, value: string) => {
     setSignUpData((prev) => ({
       ...prev,
       [field]: value,
@@ -89,27 +58,14 @@ const AuthPage: React.FC = () => {
   };
 
   const handleSignInSubmit = async () => {
-    const tokens = await authStore.signIn(signInData);
+    const tokens = await _authService.signIn(signInData);
     routeAfterAuth(tokens.accessToken);
   };
 
   const handleSignUpSubmit = async () => {
-    const tokens = await authStore.signUp(signUpData);
+    const tokens = await _authService.signUp(signUpData);
     routeAfterAuth(tokens.accessToken);
   };
-
-  const handleChangePassword = async (newPassword: string) => {
-    await authStore.changePassword(newPassword);
-    setViewChangePasswordForm(false);
-  };
-
-  if (!authStore.isHydrated) {
-    return null;
-  }
-
-  if (authStore.token) {
-    return null;
-  }
 
   return (
       <>
@@ -145,7 +101,6 @@ const AuthPage: React.FC = () => {
         {viewChangePasswordForm && (
             <ChangePasswordForm
                 onClose={() => setViewChangePasswordForm(false)}
-                onSave={handleChangePassword}
             />
         )}
       </>

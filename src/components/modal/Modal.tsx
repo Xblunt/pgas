@@ -33,7 +33,7 @@ const Modal: React.FC<ModalProps> = (props) => {
     </svg>
   `;
 
-  const [isMouseDownOnOverlay, setIsMouseDownOnOverlay] = useState(false);
+  const [isMouseDownOnOverlay, setIsMouseDownOnOverlay] = useState<boolean>(false);
   const modalContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

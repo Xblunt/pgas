@@ -2,17 +2,17 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { DefaultInput } from "@/components/inputs";
-import { CreateUser } from "@/models/User";
+import { User } from "@/models/User";
 import { Card, FormGrid } from "./page.styles";
 import Toolbar from "@/components/toolbar/Toolbar";
 import { ButtonVariant } from "@/models/types";
 import { ChangePasswordForm } from "../auth/components";
 import Loader from "@/components/loader";
 import { useStores } from "@/hooks/useStores";
-import { useToast } from "../ToastProvider";
 import { observer } from "mobx-react-lite";
+import { ProfileService } from "@/services";
 
-const emptyProfile: CreateUser = {
+const emptyProfile: User = {
     name: "",
     email: "",
     phone_number: "",
@@ -24,14 +24,12 @@ const emptyProfile: CreateUser = {
 };
 
 const ProfilePage: React.FC = () => {
-    const { profileStore, authStore } = useStores();
-    const { showToast } = useToast();
-
+    const { profileStore } = useStores();
+    const profileService = ProfileService.getInstance();
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
-    const [profile, setProfile] = useState<CreateUser>({ ...emptyProfile });
-    const [snapshot, setSnapshot] = useState<CreateUser>({ ...emptyProfile });
+    const [profile, setProfile] = useState<User>({ ...emptyProfile });
+    const [snapshot, setSnapshot] = useState<User>({ ...emptyProfile });
     const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
-
     const [validFields, setValidFields] = useState({
         email: true,
         phone: true,
@@ -39,14 +37,14 @@ const ProfilePage: React.FC = () => {
     });
 
     useEffect(() => {
-        profileStore.loadMe();
-    }, [profileStore]);
+        profileService.getProfile();
+    }, []);
 
     useEffect(() => {
         if (!profileStore.profile) return;
         if (isEditMode) return;
 
-        const merged: CreateUser = {
+        const merged: User = {
             ...emptyProfile,
             name: profileStore.profile.name || "",
             second_name: profileStore.profile.second_name || "",
@@ -68,7 +66,7 @@ const ProfilePage: React.FC = () => {
         });
     }, [profileStore.profile, isEditMode]);
 
-    const handleChange = (field: keyof CreateUser, value: string, isValid?: boolean) => {
+    const handleChange = (field: keyof User, value: string, isValid?: boolean) => {
         setProfile((prev) => ({
             ...prev,
             [field]: value,
@@ -118,9 +116,8 @@ const ProfilePage: React.FC = () => {
     };
 
     const handleSave = async () => {
-        await profileStore.updateMe(profile);
+        await profileService.updateProfile(profile);
         setIsEditMode(false);
-        showToast("Профиль обновлён", "success");
     };
 
     const disabled = !isEditMode;
@@ -150,13 +147,7 @@ const ProfilePage: React.FC = () => {
         ];
     }, [isEditMode, canSave, handleCancel, handleSave]);
 
-    const handleChangePassword = async (newPassword: string) => {
-        await authStore.changePassword(newPassword);
-        setViewChangePasswordForm(false);
-        showToast("Пароль успешно изменён", "success");
-    };
-
-    if (!profileStore.isLoaded || profileStore.isLoading) return <Loader />;
+    if (profileStore.isLoading) return <Loader />;
 
     return (
         <div className="page">
@@ -241,7 +232,6 @@ const ProfilePage: React.FC = () => {
                         label="Пароль"
                         type="password"
                         value="********"
-                        onChange={() => {}}
                         placeholder="********"
                         fullWidth
                         onChangePassword={() => setViewChangePasswordForm(true)}
@@ -254,7 +244,7 @@ const ProfilePage: React.FC = () => {
             </Card>
 
             {viewChangePasswordForm && (
-                <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)} onSave={handleChangePassword} />
+                <ChangePasswordForm gradebook_number={profile.gradebook_number} onClose={() => setViewChangePasswordForm(false)}/>
             )}
         </div>
     );

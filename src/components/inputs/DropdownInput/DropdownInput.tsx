@@ -42,7 +42,7 @@ export interface DropdownInputProps {
 }
 
 const DropdownInput: React.FC<DropdownInputProps> = (props) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedLabel, setSelectedLabel] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 

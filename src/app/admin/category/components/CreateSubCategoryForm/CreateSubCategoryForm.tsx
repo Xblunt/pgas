@@ -4,19 +4,21 @@ import React from "react";
 import { useState } from "react";
 import { DefaultInput } from "@/components/inputs";
 import Score from "@/components/score";
+import { SubCategory } from "@/models/Category";
+import { CategoryService } from "@/services";
 
 export type Props = {
-    subCategory?: any;
+    subCategory?: SubCategory;
     onClose: () => void;
-    onSave: (category: any) => void
 };
 
 const CreateSubCategoryForm: React.FC<Props> = (props) => {
+    const categoryService = CategoryService.getInstance();
     const [loading, setLoading] = useState<boolean>(false)
-    const [data, setData] = useState<any | null>(
+    const [data, setData] = useState<SubCategory>(
         props.subCategory || { 
             name: '', 
-            pointsItems: props.subCategory?.pointsItems || [] 
+            values: [] 
         }
     )
 
@@ -30,12 +32,24 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
     const handleScoreItemsChange = (items: ScoreItem[]) => {
         setData((prev: any) => ({
             ...prev,
-            pointsItems: items
+            values: items
         }));
     };
 
     const handleSave = () => {
-        props.onSave(data);
+        setLoading(true);
+        
+        const savePromise = props.subCategory 
+            ? categoryService.saveSubCategory(data)
+            : categoryService.createSubCategory(data);
+        
+        savePromise
+            .then(() => {
+                props.onClose();
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     return (
@@ -47,20 +61,20 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
             onClose={props.onClose}
             buttons={[
                 { text: "Закрыть", variant: ButtonVariant.OUTLINE, onClick: props.onClose  },
-                { text: "Сохранить", disabled: !data.name, variant: ButtonVariant.PRIMARY, onClick: handleSave  },
+                { text: "Сохранить", disabled: !data?.name, variant: ButtonVariant.PRIMARY, onClick: handleSave  },
             ]}
         >
             <div className="form">
                 <DefaultInput
                     label="Название"
-                    value={data.name || ''}
+                    value={data?.name || ''}
                     onChange={(value) => handleChange('name', value)}
                     required={true}
                     fullWidth
                 />
                 <Score
                     title="Варианты ответа"
-                    initialItems={data.pointsItems}
+                    initialItems={data?.values}
                     onItemsChange={handleScoreItemsChange}
                 />
             </div>

@@ -32,7 +32,7 @@ export const BlockContainer = styled.div<BlockContainerProps>`
     justify-content: space-between;
     gap: 16px;
     transition: background-color 0.2s ease;
-    min-height: 72px; /* Минимальная высота как у DropdownBlock */
+    min-height: 72px;
     height: auto;
     box-sizing: border-box;
 
@@ -119,6 +119,43 @@ export const InfoSecondary = styled.div`
 
     @media (max-width: 768px) {
         font-size: 12px;
+    }
+`;
+
+export const TagsContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+
+    @media (max-width: 768px) {
+        gap: 4px;
+        margin-top: 2px;
+    }
+`;
+
+export const TagChip = styled.div`
+    border: 1px solid var(--color-secondary);
+    border-radius: 10px;
+    height: 26px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--fontfamily);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: rgba(38, 49, 69, 0.03);
+
+    @media (max-width: 768px) {
+        height: 22px;
+        font-size: 11px;
+        padding: 0 8px;
+        border-radius: 8px;
     }
 `;
 

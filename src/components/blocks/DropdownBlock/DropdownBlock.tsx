@@ -23,13 +23,15 @@ import {
     IconActions,
     AchievementContent,
     TagsContainer,
+    LoaderContainer,
+    LoaderSpinner,
 } from "./DropdownBlock.styles";
 import { IconButton } from "@/components/buttons";
 import { ButtonSize, DropdownBlockItem } from "@/models/types";
 
 export interface DropdownBlockProps {
     title: string;
-    subtitle: string;
+    subtitle?: string;
     isOpen: boolean;
     items: DropdownBlockItem[];
     onToggle?: () => void;
@@ -38,6 +40,7 @@ export interface DropdownBlockProps {
     onDelete?: (id: string) => void;
     readonly?: boolean;
     onView?: (id: string) => void;
+    loading?: boolean;
 }
 
 const chevronUpIcon = `
@@ -107,7 +110,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
             <GroupHeader onClick={handleToggle}>
                 <GroupHeaderText>
                     <HeaderTitle>{props.title}</HeaderTitle>
-                    <HeaderSubtitle>{props.subtitle}</HeaderSubtitle>
+                    {props.subtitle && <HeaderSubtitle>{props.subtitle}</HeaderSubtitle>}
                 </GroupHeaderText>
 
                 <CountBox>{count}</CountBox>
@@ -133,39 +136,45 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
 
             {props.isOpen && (
                 <GroupBody>
-                    {props.items.map((item, index) => (
-                        <AchievementRow key={item.uuid}>
-                            <AchievementIndex>{index + 1}</AchievementIndex>
+                    {props.loading ? (
+                        <LoaderContainer>
+                            <LoaderSpinner />
+                        </LoaderContainer>
+                    ) : (
+                        props.items.map((item, index) => (
+                            <AchievementRow key={item.uuid}>
+                                <AchievementIndex>{index + 1}</AchievementIndex>
 
-                            <AchievementContent>
-                                <AchievementMain>
-                                    <AchievementTitle>{item.title}</AchievementTitle>
-                                    <AchievementSubtitle>{item.subtitle}</AchievementSubtitle>
-                                </AchievementMain>
+                                <AchievementContent>
+                                    <AchievementMain>
+                                        <AchievementTitle>{item.title}</AchievementTitle>
+                                        <AchievementSubtitle>{item.subtitle}</AchievementSubtitle>
+                                    </AchievementMain>
 
-                                <AchievementRight>
-                                    <PointsChip>{item.points}б</PointsChip>
+                                    <AchievementRight>
+                                        <PointsChip>{item.points}б</PointsChip>
 
-                                    <TagsContainer>
-                                        {item.tags.slice(0, 2).map((t, i) => (
-                                            <TagChip key={`${item.uuid}-tag-${i}`}>{t}</TagChip>
-                                        ))}
-                                    </TagsContainer>
+                                        <TagsContainer>
+                                            {item.tags.slice(0, 2).map((t, i) => (
+                                                <TagChip key={`${item.uuid}-tag-${i}`}>{t}</TagChip>
+                                            ))}
+                                        </TagsContainer>
 
-                                    <IconActions>
-                                        {props.readonly ? (
-                                            <IconButton icon={menuIcon} size={26} onClick={() => props.onView && props.onView(item.uuid)} />
-                                        ) : (
-                                            <>
-                                                <IconButton icon={editIcon} size={26} onClick={() => props.onEdit &&  props.onEdit(item.uuid)}/>
-                                                <IconButton icon={trashIcon} size={26} onClick={() => props.onDelete && props.onDelete(item.uuid)} />
-                                            </>
-                                        )}
-                                    </IconActions>
-                                </AchievementRight>
-                            </AchievementContent>
-                        </AchievementRow>
-                    ))}
+                                        <IconActions>
+                                            {props.readonly ? (
+                                                <IconButton icon={menuIcon} size={26} onClick={() => props.onView && props.onView(item.uuid)} />
+                                            ) : (
+                                                <>
+                                                    <IconButton icon={editIcon} size={26} onClick={() => props.onEdit &&  props.onEdit(item.uuid)}/>
+                                                    <IconButton icon={trashIcon} size={26} onClick={() => props.onDelete && props.onDelete(item.uuid)} />
+                                                </>
+                                            )}
+                                        </IconActions>
+                                    </AchievementRight>
+                                </AchievementContent>
+                            </AchievementRow>
+                        ))
+                    )}
                 </GroupBody>
             )}
         </AccordionGroup>

@@ -1,22 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CreateUser } from "@/models/User";
+import { User } from "@/models/User";
 import { DefaultInput } from "@/components/inputs";
 import { Form, SubmitButton, SwitchFormText, SwitchLink } from "../../page.styles";
 import { ButtonVariant } from "@/models/types";
 import { FormLoader } from "@/components/loader/FormLoader";
 
 interface SignUpFormProps {
-    data: CreateUser;
+    data: User;
     loading?: boolean;
-    onChange: (field: keyof CreateUser, value: string, isValid?: boolean) => void;
+    onChange: (field: keyof User, value: string, isValid?: boolean) => void;
     onSubmit: () => void;
     onSwitchToLogin: () => void;
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = (props) => {
-    const [isFormValid, setIsFormValid] = useState(false);
+    const [isFormValid, setIsFormValid] = useState<boolean>(false);
     const [validFields, setValidFields] = useState({
         email: true,
         phone: true,
@@ -40,7 +40,7 @@ const SignUpForm: React.FC<SignUpFormProps> = (props) => {
         setIsFormValid(allFilled && allValid);
     }, [props.data, validFields]);
 
-    const handleFieldChange = (field: keyof CreateUser, value: string, isValid?: boolean) => {
+    const handleFieldChange = (field: keyof User, value: string, isValid?: boolean) => {
         props.onChange(field, value);
         
         if (field === 'email' && isValid !== undefined) {

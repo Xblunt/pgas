@@ -1,5 +1,4 @@
-import { AuthStore, CategoryStore, ProfileStore, RaitingStore, UserStore } from "@/stores";
-import AchievementStore from "@/stores/achievement.store";
+import { AchievementStore, AuthStore, CategoryStore, ProfileStore, RaitingStore, UserStore } from "@/stores";
 
 class RootStore {
   userStore: UserStore;

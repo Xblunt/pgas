@@ -1,4 +1,5 @@
-export interface CreateUser {
+export interface User {
+  uuid?: string;
   name: string;
   second_name: string;
   patronymic: string;
@@ -6,16 +7,15 @@ export interface CreateUser {
   birth_date: string;
   email: string;
   phone_number: string;
-  password: string;
+  valid?: boolean;
+  password?: string;
+  all_achievement_verified?: boolean;
+  points_amount?: number;
+  achievement_amount?: number;
 }
 
-export interface UpdateUser {
-  uuid: string;
-  name: string;
-  second_name: string;
-  patronymic: string;
-  gradebook_number: string;
-  birth_date: string;
-  email: string;
-  phone_number: string;
+export interface Position {
+  current_pos: number;
+  current_points: number;
+  leader_points: number;
 }

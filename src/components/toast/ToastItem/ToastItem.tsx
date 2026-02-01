@@ -10,7 +10,7 @@ export interface ToastItemProps {
 }
 
 const ToastItem: React.FC<ToastItemProps> = ({ id, message, type, duration = 5000, onClose }) => {
-  const [isExiting, setIsExiting] = useState(false);
+  const [isExiting, setIsExiting] = useState<boolean>(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {

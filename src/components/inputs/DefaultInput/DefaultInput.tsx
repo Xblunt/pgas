@@ -36,7 +36,7 @@ export interface DefaultInputProps {
 
 const DefaultInput = (props: DefaultInputProps) => {
   const [localValue, setLocalValue] = useState(props.value || '');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string>('');
   const [emailError, setEmailError] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
@@ -206,7 +206,7 @@ const DefaultInput = (props: DefaultInputProps) => {
   };
 
   const handleChangePasswordClick = () => {
-    if (props.onChangePassword && !props.disabled) {
+    if (props.onChangePassword) {
       props.onChangePassword();
     }
   };

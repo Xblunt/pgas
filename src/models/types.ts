@@ -1,3 +1,5 @@
+import { User } from '@/models/User';
+
 export enum ButtonVariant {
     PRIMARY = "primary",
     OUTLINE = "outline"
@@ -18,16 +20,23 @@ export interface ButtonAction {
     text: string;
     variant?: ButtonVariant;
     size?: ButtonSize;
-    onClick: () => void;
+    onClick?: () => void;
     type?: ButtonType;
     disabled?: boolean;
     icon?: string;
+
+    excelData?: User[];
+    excelFileName?: string;
+    exportToExcel?: boolean;
+    onExportStart?: () => void;
+    onExportComplete?: (fileName: string) => void;
+    onExportError?: (error: string) => void;
 }
 
 export type DropdownBlockItem = {
     uuid: string;
     title: string;
-    subtitle: string;
+    subtitle?: string;
     points: number;
     tags: string[];
 };

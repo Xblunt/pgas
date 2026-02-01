@@ -2,11 +2,14 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import type { AuthStore } from "@/stores";
 import Injector from "@/utils/injector";
 import { AUTH_STORE } from "@/stores/identifiers";
+import { extractTokens } from "@/utils/jwt";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000").replace(/\/+$/, "");
 
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
+export const ACCESS_TOKEN_KEY = "access_token";
+export const REFRESH_TOKEN_KEY = "refresh_token";
+export const ROOT = "root"
+export const USER_DATA = "user_data"
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
@@ -45,22 +48,6 @@ const readRefreshFromStorage = () => {
     return localStorage.getItem(REFRESH_TOKEN_KEY) || "";
 };
 
-const extractTokens = (payload: any): { accessToken: string; refreshToken: string } => {
-    const root = payload?.data ?? payload?.result ?? payload;
-
-    const accessToken =
-        root?.access_token ?? root?.accessToken ?? root?.AccessToken ?? payload?.access_token ?? payload?.accessToken ?? payload?.AccessToken;
-
-    const refreshToken =
-        root?.refresh_token ?? root?.refreshToken ?? root?.RefreshToken ?? payload?.refresh_token ?? payload?.refreshToken ?? payload?.RefreshToken;
-
-    if (!accessToken || !refreshToken) {
-        throw new Error("Не удалось получить токены из ответа сервера");
-    }
-
-    return { accessToken, refreshToken };
-};
-
 const handleApiError = (error: any) => {
     const apiError: ApiErrorShape = {
         message: "Что-то пошло не так",
@@ -83,7 +70,7 @@ const handleApiError = (error: any) => {
             apiError.message = error.response.data.message;
         }
     } else if (error.request) {
-        apiError.message = "Нет ответа от сервера. Проверьте подключение к интернету.";
+        apiError.message = "Нет ответа от сервера.";
     } else {
         apiError.message = error.message || "Что-то пошло не так";
     }
@@ -177,11 +164,13 @@ apiClient.interceptors.response.use(
 
             const tokens = extractTokens(resp.data);
             authStore?.setTokens(tokens.accessToken, tokens.refreshToken);
+            authStore?.setRoot(tokens.isRoot)
 
             if (!authStore) {
                 if (typeof window !== "undefined") {
                     localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
                     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+                    localStorage.setItem(ROOT, tokens.isRoot);
                 }
             }
 
@@ -192,7 +181,7 @@ apiClient.interceptors.response.use(
 
             return apiClient(originalRequest);
         } catch (e) {
-            authStore?.clearStore?.();
+            authStore?.logout();
             return handleApiError(e);
         } finally {
             isRefreshing = false;

@@ -11,7 +11,9 @@ import {
     InfoSecondary,
     BlockActions,
     BlockTitle,
-    BlockWrapper
+    BlockWrapper,
+    TagsContainer,
+    TagChip
 } from "./DefaultBlock.styles";
 import { ButtonAction, ButtonSize, ButtonVariant } from "@/models/types";
 
@@ -29,6 +31,7 @@ export interface DefaultBlockProps {
     title?: string;
     actions?: ButtonAction[];
     onClick?: () => void;
+    tags?: string[];
 }
 
 const DefaultBlock: React.FC<DefaultBlockProps> = (props) => {
@@ -44,9 +47,21 @@ const DefaultBlock: React.FC<DefaultBlockProps> = (props) => {
             <BlockContainer $clickable={!!props.onClick} onClick={handleClick}>
                 <BlockContent>
                     <NumberBox>{props.number}</NumberBox>
+                    
                     <InfoText>
                         <InfoPrimary>{props.primaryText}</InfoPrimary>
                         {props.secondaryText && <InfoSecondary>{props.secondaryText}</InfoSecondary>}
+                        
+                        {props.tags && props.tags.length > 0 && (
+                            <TagsContainer>
+                                {props.tags.slice(0, 3).map((tag, index) => (
+                                    <TagChip key={`tag-${index}`}>{tag}</TagChip>
+                                ))}
+                                {props.tags.length > 3 && (
+                                    <TagChip>+{props.tags.length - 3}</TagChip>
+                                )}
+                            </TagsContainer>
+                        )}
                     </InfoText>
                 </BlockContent>
                 
@@ -65,7 +80,7 @@ const DefaultBlock: React.FC<DefaultBlockProps> = (props) => {
                                         size={40}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            action.onClick();
+                                            action.onClick && action.onClick();
                                         }}
                                     />
                                 );
@@ -78,7 +93,7 @@ const DefaultBlock: React.FC<DefaultBlockProps> = (props) => {
                                     size={action.size || ButtonSize.MEDIUM}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        action.onClick();
+                                        action.onClick && action.onClick();
                                     }}
                                 >
                                     {action.text}

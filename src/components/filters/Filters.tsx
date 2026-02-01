@@ -1,7 +1,7 @@
 // Filters.tsx
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { DefaultInput } from "@/components/inputs";
 import Checkbox from "../checkbox";
 import { 
@@ -25,20 +25,55 @@ export interface FiltersProps {
   children?: React.ReactNode;
 }
 
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null;
+  
+  return (...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout);
+    
+    timeout = setTimeout(() => {
+      func(...args);
+    }, wait);
+  };
+}
+
 const Filters: React.FC<FiltersProps> = ({ 
-  searchValue, 
+  searchValue = "", 
   onSearchChange,
   searchPlaceholder = "Поиск...",
   checkboxes,
-  children 
+  children,
 }) => {
+  const [inputValue, setInputValue] = useState(searchValue);
+  
+  const debouncedSearchChange = useCallback(
+    debounce((value: string) => {
+      if (onSearchChange) {
+        onSearchChange(value);
+      }
+    }, 300),
+    [onSearchChange]
+  );
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+    debouncedSearchChange(value);
+  };
+
+  useEffect(() => {
+    setInputValue(searchValue || "");
+  }, [searchValue]);
+
   return (
     <FiltersContainer>
       <FiltersSearchSection>
         {onSearchChange && (
           <DefaultInput
-            value={searchValue || ''}
-            onChange={onSearchChange}
+            value={inputValue}
+            onChange={handleInputChange}
             placeholder={searchPlaceholder}
             fullWidth
           />
@@ -60,7 +95,6 @@ const Filters: React.FC<FiltersProps> = ({
       )}
       
       {children}
-      
     </FiltersContainer>
   );
 };

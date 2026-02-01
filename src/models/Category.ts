@@ -1,25 +1,14 @@
-export interface CreateCategory {
-  name: string;
-  comment: string;
-  parent_uuid: string;
-  point_amount: number;
-}
-
-export interface UpdateCategory {
-  uuid: string;
-  name: string;
-  comment: string;
-  parent_uuid: string;
-  point_amount: number;
-  status: string;
-}
-
-export interface CreateCategoryResponse {
-  uuid: string;
-}
+import { ScoreItem } from "./types";
 
 export interface Category {
-  uuid: string;
-  name: string;
-  points?: number;
+    uuid?: string;
+    name: string;
+    points: number;
+}
+
+export interface SubCategory {
+    uuid?: string;
+    name: string;
+    points?: number;
+    values: ScoreItem[];
 }

@@ -1,35 +1,39 @@
-import { initialGroups } from "@/app/user/page";
 import { AchievementsBlock, DividerSpace } from "@/app/user/page.styles";
 import { DropdownBlock } from "@/components/blocks";
 import Modal from "@/components/modal";
-import { ButtonVariant } from "@/models/types";
+import { ButtonVariant, DropdownBlockItem } from "@/models/types";
 import React from "react";
 import { useEffect, useState } from "react";
 import { Quantity } from "./ViewUserModal.styles";
-import Score from "@/components/score";
+import { AchievementService } from "@/services";
+import { SimpleAchievement, UserAchievement } from "@/models/Achievement";
+import { transformToDropdownItems } from "@/utils/achievement";
 
 export type Props = {
-    user: any;
+    uuid: string;
+    name: string;
     onClose: () => void;
     onSelect: (achievementUuid: string) => void
 };
 
 const ViewUserModal: React.FC<Props> = (props) => {
-    const [data, setData] = useState(initialGroups)
-    const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({
-        g1: true,
-        g2: false,
-        g3: false,
-    });
+    const achievemntService = AchievementService.getInstance();
+    const [loading, setLoading] = useState<boolean>(false)
+    const [data, setData] = useState<UserAchievement[]>([])
+    const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-    }, [props.user.uuid]);
+        setLoading(true);
+        achievemntService.getAchievementsByUserUuid(props.uuid)
+            .then((response) => setData(response))
+            .finally(() => setLoading(false));
+    }, [props.uuid]);
 
     const calculateTotalPoints = () => {
         let total = 0;
-        data.forEach(group => {
-            group.items.forEach(item => {
-                total += item.points || 0;
+        data.forEach(item => {
+            item.achievements.forEach((item: SimpleAchievement) => {
+                total += item.point_amount || 0;
             });
         });
         return total;
@@ -40,11 +44,12 @@ const ViewUserModal: React.FC<Props> = (props) => {
     const toggleHandler = (uuid: string) => {
         setOpenUuids((prev) => ({ ...prev, [uuid]: !prev[uuid] }));
     };
-
+    
     return (
         <Modal
-            title={`Достижения студента ${props.user.name}`}
+            title={`Достижения студента ${props.name}`}
             fullWidth
+            loading={loading}
             maxWidth={640}
             buttons={[
                 { text: "Закрыть", variant: ButtonVariant.OUTLINE, onClick: props.onClose  },
@@ -52,14 +57,13 @@ const ViewUserModal: React.FC<Props> = (props) => {
         >
             <AchievementsBlock>
                 {data.map((item, idx) => (
-                    <React.Fragment key={item.uuid}>
+                    <React.Fragment key={item.category_uuid}>
                         <DropdownBlock
-                            title={item.title}
-                            subtitle={item.subtitle}
-                            isOpen={!!openUuids[item.uuid]}
-                            items={item.items}
-                            onToggle={() => toggleHandler(item.uuid)}
-                            onView={() => props.onSelect(item.uuid)}
+                            title={item.category_name}
+                            isOpen={!!openUuids[item.category_uuid]}
+                            items={transformToDropdownItems(item.achievements)}
+                            onToggle={() => toggleHandler(item.category_uuid)}
+                            onView={(uuid) => props.onSelect(uuid)}
                             readonly
                         />
                         {idx < data.length - 1 && <DividerSpace />}
