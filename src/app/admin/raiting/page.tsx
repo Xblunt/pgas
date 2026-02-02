@@ -6,7 +6,7 @@ import { ButtonAction, ButtonVariant } from "@/models/types";
 import { DefaultBlock } from "@/components/blocks";
 import Filters from "@/components/filters";
 import Pagination from "@/components/pagination";
-import { ViewUserModal, WinnerQuantityForm } from "./components";
+import { ViewAchievementForm, ViewUserModal, WinnerQuantityForm } from "./components";
 import { useStores } from "@/hooks/useStores";
 import Loader from "@/components/loader";
 import { RaitingService } from "@/services";
@@ -27,10 +27,6 @@ const AdminRaitingPage: React.FC = () => {
     const [activeUser, setActiveUser] = useState<User | null>(null);
     const [viewQuantityModal, setViewQuantityModal] = useState<boolean>(false);
     const [selectedAchievementUuid, setSelectedAchievementUuid] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!selectedAchievementUuid) return;
-    }, [selectedAchievementUuid]);
 
     useEffect(() => {
         getUsers(searchValue, showArchived, onlyVerified, limit, offset);
@@ -142,6 +138,7 @@ const AdminRaitingPage: React.FC = () => {
 
             {activeUser && <ViewUserModal onClose={() => setActiveUser(null)} onSelect={(uuid) => setSelectedAchievementUuid(uuid)} name={activeUser.name} uuid={activeUser.uuid || ""} />}
             {viewQuantityModal && <WinnerQuantityForm onClose={() => setViewQuantityModal(false)} />}
+            {selectedAchievementUuid && <ViewAchievementForm  achievementUuid={selectedAchievementUuid} onClose={() => setSelectedAchievementUuid(null)}/>}
                 
         </div>
     );

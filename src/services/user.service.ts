@@ -6,6 +6,7 @@ import { groupAchievementsByCategory } from "@/utils/achievement";
 import { CreateAchievement, SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
 import { SubCategory } from "@/models/Category";
 import { Position } from "@/models/User";
+import { toRFC3339BirthDate } from "@/utils/date";
 
 class UserService extends HttpClient {
   private static instance: UserService;
@@ -66,7 +67,11 @@ class UserService extends HttpClient {
   }
 
   async createAchievement(achievementData: CreateAchievement): Promise<any> {
-    return this.post('/achievements/create', achievementData)
+     const params = {
+        ...achievementData,
+        achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
+      }
+    return this.post('/achievements/create', params)
       .then((response) => {
         this.getAchievements();
         return response;
@@ -90,9 +95,14 @@ class UserService extends HttpClient {
   }
 
   async saveAchievement(achievementData: CreateAchievement): Promise<any> {
+
     if (achievementData.uuid) {
       const { uuid, ...dataWithoutUuid } = achievementData;
-      return this.updateAchievement(uuid, dataWithoutUuid);
+      const params = {
+        ...dataWithoutUuid,
+        achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
+      }
+      return this.updateAchievement(uuid, params);
     } else {
       return this.createAchievement(achievementData);
     }

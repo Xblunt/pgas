@@ -40,6 +40,7 @@ export interface UpdateAndViewAchievement {
     comment?: string;
     attachment_link: string;
     category: Category;
+    status?: string;
     achievement_date: string;
     subcategories: AchievementSubCategoriesViewValue[];
 };

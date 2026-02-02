@@ -60,6 +60,7 @@ const ViewUserModal: React.FC<Props> = (props) => {
                     <React.Fragment key={item.category_uuid}>
                         <DropdownBlock
                             title={item.category_name}
+                            uuid={item.category_uuid}
                             isOpen={!!openUuids[item.category_uuid]}
                             items={transformToDropdownItems(item.achievements)}
                             onToggle={() => toggleHandler(item.category_uuid)}

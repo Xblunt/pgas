@@ -11,13 +11,17 @@ import Loader from "@/components/loader";
 import { AchievementService, UserService } from "@/services";
 import { transformToDropdownItems } from "@/utils/achievement";
 
-
 const UserPage: React.FC = () => {
     const { userStore, achievementStore } = useStores();
     const achievmentService = AchievementService.getInstance();
     const userService = UserService.getInstance();
     const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({});
-    const [loadingAchievement, setLoadingAchievement] = useState<boolean>(false);
+    const [loadingAchievement, setLoadingAchievement] = useState<string | null>(null);
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCategoryUuid, setSelectedCategoryUuid] = useState<string | null>(null);
+    const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
+    const [selectedAchievementUuid, setSelectedAchievementUuid] = useState<string | null>(null);
 
     useEffect(() => {
         userService.getUserPosition();
@@ -28,10 +32,34 @@ const UserPage: React.FC = () => {
         setOpenUuids((prev) => ({ ...prev, [uuid]: !prev[uuid] }));
     };
 
-    const handleDelete = async (itemUuid: string) => {
-        setLoadingAchievement(true);
+    const handleDelete = async (itemUuid: string, categoryUuid: string) => {
+        setLoadingAchievement(categoryUuid);
         await userService.deleteAchievement(itemUuid)
-            .finally(() =>  setLoadingAchievement(false));
+            .finally(() =>  setLoadingAchievement(null));
+    };
+
+    const openCreateModal = (categoryUuid: string, categoryName: string) => {
+        setSelectedCategoryUuid(categoryUuid);
+        setSelectedCategoryName(categoryName);
+        setSelectedAchievementUuid(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (categoryUuid: string, achievementUuid: string) => {
+        const category = userStore.allAchievements.find(item => item.category_uuid === categoryUuid);
+        if (category) {
+            setSelectedCategoryUuid(categoryUuid);
+            setSelectedCategoryName(category.category_name);
+            setSelectedAchievementUuid(achievementUuid);
+            setIsModalOpen(true);
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedCategoryUuid(null);
+        setSelectedCategoryName(null);
+        setSelectedAchievementUuid(null);
     };
 
     if (userStore.isLoading) return <Loader />;
@@ -58,22 +86,26 @@ const UserPage: React.FC = () => {
                     <React.Fragment key={item.category_uuid}>
                         <DropdownBlock
                             title={item.category_name}
-                            loading={loadingAchievement}
+                            uuid={item.category_uuid}
+                            loadingUuid={loadingAchievement}
                             isOpen={!!openUuids[item.category_uuid]}
                             items={transformToDropdownItems(item.achievements)}
                             onToggle={() => toggleHandler(item.category_uuid)}
-                            // onAdd={() => openCreateModal(item.uuid)}
-                            // onEdit={(uuid) => openEditModal(item.uuid, uuid)}
-                            onDelete={(uuid) => handleDelete(uuid)}
+                            onAdd={() => openCreateModal(item.category_uuid, item.category_name)}
+                            onEdit={(achievementUuid) => openEditModal(item.category_uuid, achievementUuid)}
+                            onDelete={(uuid) => handleDelete(uuid, item.category_uuid)}
                         />
-                        {idx < item.achievements.length - 1 && <DividerSpace />}
+                        {idx < userStore.allAchievements.length - 1 && <DividerSpace />}
                     </React.Fragment>
                 ))}
             </AchievementsBlock>
 
-            {/* {isModalOpen && (
-       
-            )} */}
+            {isModalOpen && (
+                <CreateAchievementForm
+                    onClose={closeModal}
+                    achievementUuid={selectedAchievementUuid || undefined}
+                />
+            )}
         </div>
     );
 };

@@ -105,6 +105,7 @@ class CategoryService extends HttpClient {
   }
 
   async deleteCategory(uuid: string): Promise<any> {
+    this._categoryStore.setLoading(true);
     return this.delete(`/category/${uuid}`)
     .then((response) => {
         this.getCategories();
@@ -113,7 +114,8 @@ class CategoryService extends HttpClient {
     .catch((error: Error) => {
         console.error(`Error delete category ${uuid}:`, error);
         throw error;
-    });
+    })
+    .finally(() => this._categoryStore.setLoading(false));
   }
 }
 

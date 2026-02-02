@@ -33,34 +33,6 @@ export const RankBox = styled.div`
   flex-shrink: 0;
 `;
 
-export const InfoText = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-export const InfoPrimary = styled.div`
-  font-family: var(--fontfamily);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-export const InfoSecondary = styled.div`
-  font-family: var(--fontfamily);
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(38, 49, 69, 0.75);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
 export const AchievementsBlock = styled.div``;
 
 export const DividerSpace = styled.div`

@@ -21,7 +21,7 @@ const AuthPage: React.FC = () => {
   const _authService = AuthService.getInstance();
 
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
-  const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
+  // const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
 
   const [signInData, setSignInData] = useState<SignIn>({
     email: "",
@@ -83,7 +83,7 @@ const AuthPage: React.FC = () => {
                     loading={authStore.isLoading}
                     onChange={handleSignInChange}
                     onSubmit={handleSignInSubmit}
-                    onChangePassword={() => setViewChangePasswordForm(true)}
+                    // onChangePassword={() => setViewChangePasswordForm(true)}
                     onSwitchToSignUp={() => setIsSignUp(true)}
                 />
             ) : (
@@ -98,11 +98,11 @@ const AuthPage: React.FC = () => {
           </AuthCard>
         </AuthContainer>
 
-        {viewChangePasswordForm && (
+        {/* {viewChangePasswordForm && (
             <ChangePasswordForm
                 onClose={() => setViewChangePasswordForm(false)}
             />
-        )}
+        )} */}
       </>
   );
 };

@@ -10,5 +10,6 @@ export interface SubCategory {
     uuid?: string;
     name: string;
     points?: number;
+    parent_uuid?: string;
     values: ScoreItem[];
 }

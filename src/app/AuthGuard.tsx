@@ -18,85 +18,85 @@ const AuthGuard: React.FC<Props> = ({ children }) => {
   const authService = AuthService.getInstance();
   const [isChecking, setIsChecking] = useState<boolean>(true);
 
-//   useEffect(() => {
-//     const checkAuth = async () => {
-//       const publicPaths = ['/auth'];
-//       const isPublicPath = publicPaths.includes(pathname);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const publicPaths = ['/auth'];
+      const isPublicPath = publicPaths.includes(pathname);
       
-//       if (isPublicPath) {
-//         if (authStore.token) {
-//           const targetRoute = authStore.isRoot ? "/admin/raiting" : "/user";
-//           router.replace(targetRoute);
-//           return;
-//         }
+      if (isPublicPath) {
+        if (authStore.token) {
+          const targetRoute = authStore.isRoot ? "/admin/raiting" : "/user";
+          router.replace(targetRoute);
+          return;
+        }
         
-//         setIsChecking(false);
-//         return;
-//       }
+        setIsChecking(false);
+        return;
+      }
 
-//       const localStorageToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-//       const localStorageRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-//       const localStorageIsRoot = localStorage.getItem(ROOT) === "true";
+      const localStorageToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const localStorageRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      const localStorageIsRoot = localStorage.getItem(ROOT) === "true";
 
-//       if ((localStorageToken || localStorageRefreshToken) && 
-//           (!authStore.token && !authStore.refreshToken)) {
+      if ((localStorageToken || localStorageRefreshToken) && 
+          (!authStore.token && !authStore.refreshToken)) {
         
-//         if (localStorageToken) {
-//           authStore.setToken(localStorageToken);
-//         }
-//         if (localStorageRefreshToken) {
-//           authStore.setRefreshToken(localStorageRefreshToken);
-//         }
-//         if (localStorageIsRoot !== undefined) {
-//           authStore.setRoot(localStorageIsRoot);
-//         }
-//       }
+        if (localStorageToken) {
+          authStore.setToken(localStorageToken);
+        }
+        if (localStorageRefreshToken) {
+          authStore.setRefreshToken(localStorageRefreshToken);
+        }
+        if (localStorageIsRoot !== undefined) {
+          authStore.setRoot(localStorageIsRoot);
+        }
+      }
 
-//       if (authStore.refreshToken && !authStore.token) {
-//         try {
-//           await authService.refreshTokens();
-//         } catch (error) {
-//           authStore.setToken();
-//           authStore.setRefreshToken();
-//           authStore.setRoot(false);
+      if (authStore.refreshToken && !authStore.token) {
+        try {
+          await authService.refreshTokens();
+        } catch (error) {
+          authStore.setToken();
+          authStore.setRefreshToken();
+          authStore.setRoot(false);
           
-//           router.replace("/auth");
-//           return;
-//         }
-//       }
+          router.replace("/auth");
+          return;
+        }
+      }
 
-//       if (!authStore.token && !authStore.refreshToken) {
-//         authStore.setToken();
-//         authStore.setRefreshToken();
-//         authStore.setRoot(false);
+      if (!authStore.token && !authStore.refreshToken) {
+        authStore.setToken();
+        authStore.setRefreshToken();
+        authStore.setRoot(false);
         
-//         router.replace("/auth");
-//         return;
-//       }
+        router.replace("/auth");
+        return;
+      }
 
-//       if (pathname === "/") {
-//         const targetRoute = authStore.isRoot ? "/admin/raiting" : "/user";
-//         router.replace(targetRoute);
-//         return;
-//       }
+      if (pathname === "/") {
+        const targetRoute = authStore.isRoot ? "/admin/raiting" : "/user";
+        router.replace(targetRoute);
+        return;
+      }
 
-//       const adminPaths = ['/admin'];
-//       const isAdminPath = adminPaths.some(path => pathname.startsWith(path));
+      const adminPaths = ['/admin'];
+      const isAdminPath = adminPaths.some(path => pathname.startsWith(path));
       
-//       if (isAdminPath && !authStore.isRoot) {
-//         router.replace("/user");
-//         return;
-//       }
+      if (isAdminPath && !authStore.isRoot) {
+        router.replace("/user");
+        return;
+      }
 
-//       setIsChecking(false);
-//     };
+      setIsChecking(false);
+    };
 
-//     checkAuth();
-//   }, [authStore.token, authStore.refreshToken, authStore.isRoot, router, pathname]);
+    checkAuth();
+  }, [authStore.token, authStore.refreshToken, authStore.isRoot, router, pathname]);
 
-//   if (isChecking) {
-//     return <Loader />;
-//   }
+  if (isChecking) {
+    return <Loader />;
+  }
 
   return <>{children}</>;
 };

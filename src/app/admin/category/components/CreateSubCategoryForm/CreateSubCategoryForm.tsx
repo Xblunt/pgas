@@ -9,6 +9,7 @@ import { CategoryService } from "@/services";
 
 export type Props = {
     subCategory?: SubCategory;
+    parent_uuid?: string | null;
     onClose: () => void;
 };
 
@@ -18,7 +19,8 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
     const [data, setData] = useState<SubCategory>(
         props.subCategory || { 
             name: '', 
-            values: [] 
+            values: [],
+            parent_uuid: props.parent_uuid || '',
         }
     )
 

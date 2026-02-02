@@ -4,6 +4,7 @@ import Injector from "@/utils/injector";
 import { ACHIEVEMENT_STORE } from "@/stores/identifiers";
 import { SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
 import { groupAchievementsByCategory } from "@/utils/achievement";
+import { toDottedDate } from "@/utils/date";
 
 class AchievementService extends HttpClient {
     private static instance: AchievementService;
@@ -24,7 +25,11 @@ class AchievementService extends HttpClient {
     async getAchievementById(achievementUuid: string): Promise<UpdateAndViewAchievement> {
         return this.get<UpdateAndViewAchievement>(`/achievement/${achievementUuid}`)
         .then((achievement: UpdateAndViewAchievement) => {
-            return achievement;
+            const params = {
+                ...achievement,
+                achievement_date: toDottedDate(achievement.achievement_date)
+            }
+            return params;
         })
         .catch((error: Error) => {
             console.error(`Error fetching achievement ${achievementUuid}:`, error);

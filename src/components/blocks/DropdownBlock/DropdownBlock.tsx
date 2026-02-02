@@ -31,6 +31,7 @@ import { ButtonSize, DropdownBlockItem } from "@/models/types";
 
 export interface DropdownBlockProps {
     title: string;
+    uuid: string;
     subtitle?: string;
     isOpen: boolean;
     items: DropdownBlockItem[];
@@ -38,9 +39,11 @@ export interface DropdownBlockProps {
     onAdd?: () => void;
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
+    onParentEdit?: (id: string) => void;
+    onParentDelete?: (id: string) => void;
     readonly?: boolean;
     onView?: (id: string) => void;
-    loading?: boolean;
+    loadingUuid?: string | null;
 }
 
 const chevronUpIcon = `
@@ -82,6 +85,7 @@ const menuIcon = `
 
 const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
     const count = props.items.length;
+    const isLoading = props.loadingUuid === props.uuid;
 
     const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (!props.onAdd) return;
@@ -98,7 +102,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
     const handleToggle = () => {
         if (props.items.length <= 0 && !props.readonly && props.onAdd) {
             props.onAdd();
-            return
+            return;
         }
 
         if (!props.onToggle || props.items.length <= 0) return;
@@ -117,9 +121,14 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
 
                 <GroupActions>
                     {!props.readonly && (
-                        <SquareButton size={ButtonSize.SAMLL} onClick={handleAdd}>
-                            +
-                        </SquareButton>
+                        <IconActions>
+                            <SquareButton size={ButtonSize.SAMLL} onClick={handleAdd}>
+                                +
+                            </SquareButton>
+
+                            <IconButton icon={editIcon} size={26} onClick={() => props.onParentEdit && props.onParentEdit(props.uuid)} />
+                            <IconButton icon={trashIcon} size={26} onClick={() => props.onParentDelete && props.onParentDelete(props.uuid)} />
+                        </IconActions>
                     )}
 
                     {props.items.length > 0 && (
@@ -136,7 +145,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
 
             {props.isOpen && (
                 <GroupBody>
-                    {props.loading ? (
+                    {isLoading ? (
                         <LoaderContainer>
                             <LoaderSpinner />
                         </LoaderContainer>
@@ -165,7 +174,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
                                                 <IconButton icon={menuIcon} size={26} onClick={() => props.onView && props.onView(item.uuid)} />
                                             ) : (
                                                 <>
-                                                    <IconButton icon={editIcon} size={26} onClick={() => props.onEdit &&  props.onEdit(item.uuid)}/>
+                                                    <IconButton icon={editIcon} size={26} onClick={() => props.onEdit && props.onEdit(item.uuid)} />
                                                     <IconButton icon={trashIcon} size={26} onClick={() => props.onDelete && props.onDelete(item.uuid)} />
                                                 </>
                                             )}
