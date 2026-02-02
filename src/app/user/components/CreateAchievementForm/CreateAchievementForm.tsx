@@ -10,8 +10,8 @@ import { SubCategory } from "@/models/Category";
 
 export interface CreateAchievementFormProps {
   onClose: () => void;
-  categoryUuid?: string;
-  categoryName?: string;
+  categoryUuid?: string | null;
+  categoryName?: string | null;
   achievementUuid?: string;
 }
 
@@ -28,9 +28,13 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
   const [nameError, setNameError] = useState<string>("");
   const [attachmentLink, setAttachmentLink] = useState("");
   const [attachmentLinkError, setAttachmentLinkError] = useState<string>("");
+  const [attachmentLinkValid, setAttachmentLinkValid] = useState<boolean>(false);
   const [comment, setComment] = useState("");
+  const [commentError, setCommentError] = useState<string>("");
+  const [commentValid, setCommentValid] = useState<boolean>(false);
   const [achievementDate, setAchievementDate] = useState("");
   const [achievementDateError, setAchievementDateError] = useState<string>("");
+  const [achievementDateValid, setAchievementDateValid] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [selectedSubcategoryValues, setSelectedSubcategoryValues] = useState<Record<string, string>>({});
   const [selectedSubcategoryPoints, setSelectedSubcategoryPoints] = useState<Record<string, number>>({});
@@ -47,9 +51,9 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
 
   useEffect(() => {
     const checkFormValidity = () => {
-      const isNameValid = name.trim().length > 0;
-      const isAttachmentLinkValid = attachmentLink.trim().length > 0;
-      const isDateValid = achievementDateError === "" && achievementDate.trim().length === 10;
+      const isAttachmentLinkValid = attachmentLinkValid && attachmentLink.trim().length > 0;
+      const isDateValid = achievementDateValid && achievementDateError === "" && achievementDate.trim().length === 10;
+      const isCommentValid = commentValid && comment.trim().length > 0;
       
       const allSubcategoriesFilled = subcategoriesData.every(sub => {
         const value = selectedSubcategoryValues[sub.uuid || ''];
@@ -58,9 +62,9 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
       
       const hasSubcategories = subcategoriesData.length > 0;
       
-      const isValid = isNameValid && 
-                     isAttachmentLinkValid && 
+      const isValid = isAttachmentLinkValid && 
                      isDateValid && 
+                     isCommentValid && 
                      allSubcategoriesFilled && 
                      hasSubcategories;
       
@@ -68,7 +72,17 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
     };
     
     checkFormValidity();
-  }, [name, attachmentLink, achievementDate, achievementDateError, selectedSubcategoryValues, subcategoriesData]);
+  }, [
+    attachmentLink, 
+    attachmentLinkValid, 
+    achievementDate, 
+    achievementDateValid, 
+    achievementDateError, 
+    comment,
+    commentValid,
+    selectedSubcategoryValues, 
+    subcategoriesData
+  ]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -81,8 +95,11 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
           
           setName(data.category.name);
           setAttachmentLink(data.attachment_link);
+          setAttachmentLinkValid(true);
           setComment(data.comment || "");
+          setCommentValid(true);
           setAchievementDate(data.achievement_date);
+          setAchievementDateValid(true);
           setStatus(data.status || "");
           
           const selectedValues: Record<string, string> = {};
@@ -127,6 +144,11 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
           setSelectedSubcategoryValues(initialValues);
           setSelectedSubcategoryPoints(initialPoints);
           setTotalPoints(total);
+          
+          // В режиме создания устанавливаем начальные значения валидации
+          setAttachmentLinkValid(false);
+          setCommentValid(false);
+          setAchievementDateValid(false);
         }
       } catch (error) {
         console.error("Ошибка загрузки данных:", error);
@@ -162,19 +184,22 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
     calculateTotalPoints(newPoints);
   };
 
-  const handleNameChange = (value: string, isValid: boolean) => {
-    setName(value);
-    setNameError(isValid ? "" : "Название обязательно");
-  };
-
   const handleAttachmentLinkChange = (value: string, isValid: boolean) => {
     setAttachmentLink(value);
-    setAttachmentLinkError(isValid ? "" : "Ссылка обязательна");
+    setAttachmentLinkValid(isValid);
+    setAttachmentLinkError(isValid ? "" : "Это поле обязательно");
   };
 
   const handleDateChange = (value: string, isValid: boolean) => {
     setAchievementDate(value);
+    setAchievementDateValid(isValid);
     setAchievementDateError(isValid ? "" : "Дата должна быть в формате dd.mm.yyyy");
+  };
+
+  const handleCommentChange = (value: string, isValid: boolean) => {
+    setComment(value);
+    setCommentValid(isValid);
+    setCommentError(isValid ? "" : "Это поле обязательно");
   };
 
   const prepareSaveData = (): CreateAchievement => {
@@ -240,11 +265,11 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
         return (
           <DropdownInput
             key={subcategory.uuid}
-            label={`${subcategory.name} (${currentPoints} баллов)`}
+            label={`${subcategory.name}`}
             value={selectedSubcategoryValues[subcategory.uuid || ''] || ""}
             options={subcategory.values.map(item => ({
               value: item.name,
-              label: `${item.name} (${item.points} баллов)`
+              label: `${item.name}`
             }))}
             fullWidth
             placeholder="Выберите значение..."
@@ -261,13 +286,13 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
         return (
           <DropdownInput
             key={subcategory.uuid}
-            label={`${subcategory.name} (${currentPoints} баллов)`}
+            label={`${subcategory.name}`}
             value={selectedSubcategoryValues[subcategory.uuid] || subcategory.selected_value}
             options={
               fullSubcategory 
                 ? fullSubcategory.values.map(item => ({
                     value: item.name,
-                    label: `${item.name} (${item.points} баллов)`
+                    label: `${item.name}`
                   }))
                 : subcategory.available_values.map(value => ({
                     value: value,
@@ -303,16 +328,6 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
       ]}
     >
       <div className="form">
-        <DefaultInput
-          label="Название достижения"
-          value={name}
-          onChange={handleNameChange}
-          fullWidth
-          placeholder="Введите название"
-          required
-          error={nameError}
-        />
-
         <DefaultInput
           label="Категория"
           value={
@@ -369,10 +384,12 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
         <TextareaInput
           label="Комментарий"
           value={comment}
-          onChange={(value) => setComment(value)}
+          onChange={handleCommentChange}
           fullWidth
           rows={4}
+          required
           placeholder="Введите комментарий"
+          error={commentError}
         />
       </div>
     </Modal>

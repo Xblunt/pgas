@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyledTextArea, TextAreaWrapper, TextAreaLabel, ErrorText } from './TextareaInput.styles';
 
 export interface TextareaInputProps {
@@ -10,37 +10,132 @@ export interface TextareaInputProps {
   value?: string;
   placeholder?: string;
   disabled?: boolean;
-  onChange?: (value: string) => void;
+  required?: boolean;
+  maxLength?: number;
+  onChange?: (value: string, isValid: boolean) => void;
   onBlur?: () => void;
   onFocus?: () => void;
 }
 
 const TextareaInput: React.FC<TextareaInputProps> = (props) => {
+  const [localValue, setLocalValue] = useState(props.value || '');
+  const [validationError, setValidationError] = useState<string>('');
+  const [hasBlurred, setHasBlurred] = useState<boolean>(false);
+
+  const changeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (props.value !== undefined && props.value !== localValue) {
+      setLocalValue(props.value);
+    }
+  }, [props.value]);
+
+  const validateRequired = (value: string): boolean => {
+    const trimmedValue = value.trim();
+    
+    if (!trimmedValue) {
+      setValidationError('Это поле обязательно');
+      return false;
+    }
+    
+    setValidationError('');
+    return true;
+  };
+
+  const validateMaxLength = (value: string): boolean => {
+    if (props.maxLength && value.length > props.maxLength) {
+      setValidationError(`Максимальная длина: ${props.maxLength} символов`);
+      return false;
+    }
+    
+    // Если ошибка уже была по макс. длине, сбрасываем её
+    if (validationError.includes('Максимальная длина')) {
+      setValidationError('');
+    }
+    
+    return true;
+  };
+
+  const validateField = (value: string): boolean => {
+    let validRequired = true;
+    let validMaxLength = true;
+    
+    if (props.required) {
+      validRequired = validateRequired(value);
+    }
+    
+    if (props.maxLength) {
+      validMaxLength = validateMaxLength(value);
+    }
+    
+    const result = validRequired && validMaxLength;
+    return result;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (props.onChange) {
-      props.onChange(e.target.value);
+    const value = e.target.value;
+    
+    setLocalValue(value);
+    
+    const fieldIsValid = validateField(value);
+    
+    // Используем таймаут для дебаунса, как в DefaultInput
+    if (changeTimeoutRef.current) {
+      clearTimeout(changeTimeoutRef.current);
+    }
+    
+    changeTimeoutRef.current = setTimeout(() => {
+      if (props.onChange) {
+        props.onChange(value, fieldIsValid);
+      }
+    }, 100);
+  };
+
+  const handleBlur = () => {
+    setHasBlurred(true);
+    
+    // Валидируем поле при потере фокуса
+    if (props.required) {
+      validateRequired(localValue);
+    }
+    
+    if (props.onBlur) {
+      props.onBlur();
     }
   };
+
+  const handleFocus = () => {
+    setHasBlurred(false);
+    if (props.onFocus) {
+      props.onFocus();
+    }
+  };
+
+  // Показываем ошибку только если поле было в фокусе и потеряло его
+  // или если передана ошибка извне
+  const showError = props.error || (hasBlurred && validationError);
 
   return (
     <TextAreaWrapper className={props.className} $fullWidth={!!props.fullWidth}>
       {props.label && (
-        <TextAreaLabel $hasError={!!props.error}>
+        <TextAreaLabel $hasError={!!showError}>
           {props.label}
+          {props.required && ' *'}
         </TextAreaLabel>
       )}
       <StyledTextArea
-        $hasError={!!props.error}
+        $hasError={!!showError}
         $fullWidth={!!props.fullWidth}
         rows={props.rows || 3}
-        value={props.value}
+        value={localValue}
         placeholder={props.placeholder}
         disabled={props.disabled}
+        maxLength={props.maxLength}
         onChange={handleChange}
-        onBlur={props.onBlur}
-        onFocus={props.onFocus}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
       />
-      {props.error && <ErrorText>{props.error}</ErrorText>}
+      {showError && <ErrorText>{showError}</ErrorText>}
     </TextAreaWrapper>
   );
 };

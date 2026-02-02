@@ -83,7 +83,7 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
     return achievementData.subcategories.map(subcategory => (
       <DefaultInput
         key={subcategory.uuid}
-        label={`${subcategory.name} (${subcategory.points} баллов)`}
+        label={`${subcategory.name}`}
         value={subcategory.selected_value}
         onChange={() => {}}
         fullWidth
@@ -121,14 +121,6 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
       ]}
     >
       <div className="form">
-        <DefaultInput
-          label="Название достижения"
-          value={achievementData?.category.name || ""}
-          onChange={() => {}}
-          fullWidth
-          disabled
-        />
-
         <DefaultInput
           label="Категория"
           value={achievementData?.category.name || ""}

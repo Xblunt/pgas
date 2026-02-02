@@ -8,12 +8,11 @@ import { DropdownBlock } from "@/components/blocks";
 import DefaultBlock from "@/components/blocks/DefaultBlock/DefaultBlock";
 import { CreateAchievementForm } from "./components";
 import Loader from "@/components/loader";
-import { AchievementService, UserService } from "@/services";
+import { UserService } from "@/services";
 import { transformToDropdownItems } from "@/utils/achievement";
 
 const UserPage: React.FC = () => {
-    const { userStore, achievementStore } = useStores();
-    const achievmentService = AchievementService.getInstance();
+    const { userStore } = useStores();
     const userService = UserService.getInstance();
     const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({});
     const [loadingAchievement, setLoadingAchievement] = useState<string | null>(null);
@@ -103,6 +102,8 @@ const UserPage: React.FC = () => {
             {isModalOpen && (
                 <CreateAchievementForm
                     onClose={closeModal}
+                    categoryName={selectedCategoryName}
+                    categoryUuid={selectedCategoryUuid}
                     achievementUuid={selectedAchievementUuid || undefined}
                 />
             )}
