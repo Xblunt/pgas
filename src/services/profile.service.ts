@@ -54,7 +54,7 @@ class ProfileService extends HttpClient {
       birth_date: toRFC3339BirthDate(profile.birth_date),
     };
 
-    return this.put<any>(`/user/${profile.uuid}`, body)
+    return this.put<any>(`/user/me`, body)
       .then((response) => {
         this.getProfile();
         return response;

@@ -22,7 +22,7 @@ class CategoryService extends HttpClient {
 
   async getCategories(): Promise<Category[]> {
     this._categoryStore.setLoading(true);
-    return this.get<Category[]>(`/categories`)
+    return this.get<Category[]>(`/category/parent`)
     .then((response) => {
         this._categoryStore.setCategories(response);
         return response;
@@ -35,7 +35,7 @@ class CategoryService extends HttpClient {
   }
 
   async createCategory(category: Category): Promise<any> {
-    return this.put(`/category/create/${category.uuid}`, {...category})
+    return this.post(`/category`, {...category})
     .then((response) => {
         this.getCategories();
         return response;
@@ -47,7 +47,7 @@ class CategoryService extends HttpClient {
   }
 
   async createSubCategory(subcategory: SubCategory): Promise<any> {
-    return this.put(`/category/create/${subcategory.uuid}`, {...subcategory})
+    return this.post(`/category`, {...subcategory})
     .then((response) => {
       this.getCategories();
       return response;
@@ -59,7 +59,7 @@ class CategoryService extends HttpClient {
   }
 
   async saveCategory(category: Category): Promise<any> {
-    return this.put(`/category/update/${category.uuid}`, {...category})
+    return this.put(`/category/${category.uuid}`, {...category})
     .then((response) => {
         this.getCategories();
         return response;
@@ -71,7 +71,7 @@ class CategoryService extends HttpClient {
   }
 
   async saveSubCategory(subcategory: SubCategory): Promise<any> {
-    return this.put(`/category/update/${subcategory.uuid}`, {...subcategory})
+    return this.put(`/category/${subcategory.uuid}`, {...subcategory})
     .then((response) => {
       this.getCategories();
       return response;
@@ -83,7 +83,7 @@ class CategoryService extends HttpClient {
   }
 
   async getSubCategoriesByParentUuid(uuid: string): Promise<SubCategory[]> {
-    return this.get<SubCategory[]>(`/category/childs/${uuid}`)
+    return this.get<SubCategory[]>(`/category/children/${uuid}`)
     .then((response) => {
         return response;
     })
@@ -94,7 +94,7 @@ class CategoryService extends HttpClient {
   }
 
   async deleteSubCategory(uuid: string): Promise<any> {
-    return this.delete(`/category/childs/${uuid}`)
+    return this.delete(`/category/${uuid}`)
     .then((response) => {
         return response;
     })

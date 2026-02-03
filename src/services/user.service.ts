@@ -43,7 +43,7 @@ class UserService extends HttpClient {
 
   async getUserPosition(): Promise<Position> {
     this._userStore.setLoading(true);
-    return this.get<Position>('/position')
+    return this.get<Position>('/rating/short_info')
       .then((position: Position) => {
         this._userStore.setPosition(position);
         return position;
@@ -56,7 +56,7 @@ class UserService extends HttpClient {
   }
 
   async getSubcategoriesByParent(parentCategoryUuid: string): Promise<SubCategory[]> {
-    return this.get<SubCategory[]>(`/subcategories/${parentCategoryUuid}`)
+    return this.get<SubCategory[]>(`/category/children/${parentCategoryUuid}`)
       .then((subcategories: SubCategory[]) => {
         return subcategories;
       })
@@ -71,7 +71,7 @@ class UserService extends HttpClient {
         ...achievementData,
         achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
       }
-    return this.post('/achievements/create', params)
+    return this.post('/achievement', params)
       .then((response) => {
         this.getAchievements();
         return response;
@@ -82,8 +82,12 @@ class UserService extends HttpClient {
       });
   }
 
-  async updateAchievement(achievementUuid: string, achievementData: Partial<CreateAchievement>): Promise<any> {
-    return this.put(`/achievements/${achievementUuid}/update`, achievementData)
+  async updateAchievement(achievementUuid: string, achievementData: CreateAchievement): Promise<any> {
+      const params = {
+        ...achievementData,
+        achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
+      }
+    return this.put(`/achievement`, params)
       .then((response) => {
         this.getAchievements();
         return response;
@@ -95,21 +99,26 @@ class UserService extends HttpClient {
   }
 
   async saveAchievement(achievementData: CreateAchievement): Promise<any> {
-
     if (achievementData.uuid) {
-      const { uuid, ...dataWithoutUuid } = achievementData;
-      const params = {
+       const { uuid, ...dataWithoutUuid } = achievementData;
+        const params = {
+        ...achievementData,
+        achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
+      }
+   
+      return this.updateAchievement(uuid, params);
+    } else {
+         const { uuid, ...dataWithoutUuid } = achievementData;
+         const params = {
         ...dataWithoutUuid,
         achievement_date: toRFC3339BirthDate(achievementData.achievement_date)
       }
-      return this.updateAchievement(uuid, params);
-    } else {
-      return this.createAchievement(achievementData);
+      return this.createAchievement(params);
     }
   }
 
   async deleteAchievement(achievementUuid: string): Promise<any> {
-    return this.delete(`/achievements/${achievementUuid}`)
+    return this.delete(`/achievement/${achievementUuid}`)
       .then((response) => {
         this.getAchievements();
         return response;

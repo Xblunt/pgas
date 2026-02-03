@@ -24,7 +24,7 @@ class RaitingService extends HttpClient {
   async getAllUsers(search?: string, valid?: boolean, winners?: boolean, limit?: number, offset?: number): Promise<ApiResponse<User[]>> {
     const params = { search, winners, valid, limit, offset }
     this._raitingStore.setLoading(true);
-    return this.post<ApiResponse<User[]>>(`/users`, {...params})
+    return this.post<ApiResponse<User[]>>(`/raiting`, {...params})
     .then((response) => {
       this._raitingStore.setUsers(response);
       return response;
@@ -37,7 +37,7 @@ class RaitingService extends HttpClient {
   }
 
   async getWinnerQuantity(): Promise<number> {
-    return this.get<number>(`/const`)
+    return this.get<number>(`/constant/grades_amount`)
     .then((response) => {
         this._raitingStore.setWinnerQuantity(response);
         return response;
@@ -49,7 +49,7 @@ class RaitingService extends HttpClient {
   }
 
   async updateWinnerQuantity(value: number): Promise<any> {
-    return this.put<number>(`/const`, { const: value})
+    return this.put<number>(`constant/grades_amount`, { constant: String(value) })
     .then((response) => {
         return response;
     })
@@ -60,23 +60,23 @@ class RaitingService extends HttpClient {
   }
   
   async verifyUser(userUuid: string): Promise<any> {
-    return this.put(`/user/verify/${userUuid}`)
+    return this.put(`/user/approve/${userUuid}`)
       .then((response) => {
         return response;
       })
       .catch((error: Error) => {
-        console.error(`Error verify user ${userUuid}:`, error);
+        console.error(`Error approve user ${userUuid}:`, error);
         throw error;
       })
   }
 
   async unverifyUser(userUuid: string): Promise<any> {
-    return this.put(`/user/unverify/${userUuid}`)
+    return this.put(`/user/decline/${userUuid}`)
       .then((response) => {
         return response;
       })
       .catch((error: Error) => {
-        console.error(`Error unverify user ${userUuid}:`, error);
+        console.error(`Error decline user ${userUuid}:`, error);
         throw error;
       });
   }
