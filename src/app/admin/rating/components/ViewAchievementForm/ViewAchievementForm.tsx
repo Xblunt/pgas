@@ -10,6 +10,7 @@ import { AchievementService } from "@/services";
 export interface ViewAchievementFormProps {
   onClose: () => void;
   achievementUuid: string;
+  userUuid?: string;
 }
 
 const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
@@ -24,26 +25,26 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
 
   const achievmentService = AchievementService.getInstance();
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const data = await achievmentService.getAchievementById(props.achievementUuid);
-        setAchievementData(data);
-        
-        setComment(data.comment || "");
-        setStatus(data.status || "");
-        
-        const total = data.subcategories.reduce((sum, sub) => sum + sub.points, 0);
-        setTotalPoints(total);
-        
-      } catch (error) {
-        console.error("Ошибка загрузки данных достижения:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const data = await achievmentService.getAchievementById(props.achievementUuid);
+      setAchievementData(data);
+      
+      setComment(data.comment || "");
+      setStatus(data.status || "");
+      
+      const total = data.subcategories.reduce((sum, sub) => sum + sub.points, 0);
+      setTotalPoints(total);
+      
+    } catch (error) {
+      console.error("Ошибка загрузки данных достижения:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadData();
   }, [props.achievementUuid]);
 
@@ -52,7 +53,10 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
     
     setActionLoading(true);
     try {
-      await achievmentService.approveAchievement(props.achievementUuid);
+      
+      const response = await achievmentService.approveAchievement(props.achievementUuid);;
+
+      if (response && props.userUuid)  achievmentService.getAchievementsByUserUuid(props.userUuid);
       
       props.onClose();
     } catch (error) {
@@ -67,8 +71,9 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
     
     setActionLoading(true);
     try {
-      await achievmentService.rejecteAchievement(props.achievementUuid);
-    
+      const response = await achievmentService.rejecteAchievement(props.achievementUuid);
+
+      if (response && props.userUuid)  achievmentService.getAchievementsByUserUuid(props.userUuid);
       props.onClose();
     } catch (error) {
       console.error("Ошибка при отклонении достижения:", error);
@@ -94,12 +99,18 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
 
   return (
     <Modal
-      title={`Просмотр достижения ${props.achievementUuid}`}
+      title={`Просмотр достижения`}
       fullWidth
       loading={loading}
       onClose={props.onClose}
       maxWidth={640}
       buttons={[
+        { 
+          text: "Закрыть", 
+          variant: ButtonVariant.OUTLINE, 
+          onClick: props.onClose,
+          disabled: actionLoading
+        },
         { 
           text: "Отклонить", 
           variant: ButtonVariant.OUTLINE, 
@@ -111,12 +122,6 @@ const ViewAchievementForm: React.FC<ViewAchievementFormProps> = (props) => {
           variant: ButtonVariant.PRIMARY, 
           onClick: handleApprove,
           disabled: actionLoading || isActionDisabled,
-        },
-        { 
-          text: "Закрыть", 
-          variant: ButtonVariant.OUTLINE, 
-          onClick: props.onClose,
-          disabled: actionLoading
         },
       ]}
     >

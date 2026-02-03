@@ -14,11 +14,12 @@ export const InputWrapper = styled.div<{
 
 export const InputLabel = styled.label<{
   $hasError: boolean;
+  $disabled?: boolean;
 }>`
   font-family: var(--fontfamily);
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.$hasError ? 'var(--error)' : 'var(--color-primary)'};
+  color: ${props => props.$hasError ? 'var(--error)' : (props.$disabled ? 'rgba(38, 48, 69, 0.5)' : 'var(--color-primary)')};
 `;
 
 export const StyledInput = styled.input<{

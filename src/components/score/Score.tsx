@@ -38,7 +38,7 @@ const Score: React.FC<Props> = (props) => {
 
         debounceTimerRef.current = setTimeout(() => {
             sendData(currentItems);
-        }, props.debounceDelay || 500);
+        }, props.debounceDelay || 100);
     }, [props.debounceDelay, sendData]);
 
     useEffect(() => {
@@ -123,7 +123,7 @@ const Score: React.FC<Props> = (props) => {
                         <ItemRow key={index} as="form">
                             <NameInput 
                                 type="text"
-                                placeholder="Имя игрока"
+                                placeholder="Название"
                                 value={item.name}
                                 onChange={(e) => handleUpdateItem(index, 'name', e.target.value)}
                                 onKeyPress={(e) => handleKeyPress(e, index)}
@@ -139,7 +139,10 @@ const Score: React.FC<Props> = (props) => {
                             <IconButton
                                 icon="&minus;"
                                 size={30}
-                                onClick={() => handleRemoveItem(index)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleRemoveItem(index);
+                                }}
                             />
                         </ItemRow>
                     ))}

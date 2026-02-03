@@ -1,13 +1,10 @@
-import { SimpleAchievement } from "@/models/Achievement";
+import { SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
 import { Category, SubCategory } from "@/models/Category";
 import { makeAutoObservable } from "mobx";
 
 class AchievementStore {
     private _isLoading: boolean = false;
-
-    private _achievements: SimpleAchievement[] = [];
-    private _parentCategories: Category[] = [];
-    private _childCategoriesByParent: Record<string, SubCategory[]> = {};
+    private _achievements: UserAchievement[]  = [];
 
     constructor() {
         makeAutoObservable(this);
@@ -21,35 +18,17 @@ class AchievementStore {
         return this._achievements;
     }
 
-    get parentCategories() {
-        return this._parentCategories;
-    }
-
-    get childCategoriesByParent() {
-        return this._childCategoriesByParent;
-    }
-
     setLoading = (loading: boolean) => {
         this._isLoading = loading;
     };
 
-    setAchievements = (achievements: SimpleAchievement[]) => {
+    setAchievements = (achievements: UserAchievement[]) => {
         this._achievements = achievements;
-    };
-
-    setParentCategories = (categories: Category[]) => {
-        this._parentCategories = categories;
-    };
-
-    setChildCategories = (parentUuid: string, categories: SubCategory[]) => {
-        this._childCategoriesByParent[parentUuid] = categories;
     };
 
     clearStore = () => {
         this._isLoading = false;
         this._achievements = [];
-        this._parentCategories = [];
-        this._childCategoriesByParent = {};
         };
     }
 

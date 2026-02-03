@@ -30,6 +30,12 @@ const Toolbar: React.FC<ToolbarProps> = ({ title, buttons, children }) => {
                         size={button.size || ButtonSize.MEDIUM}
                         onClick={button.onClick}
                         disabled={button.disabled}
+                        exportToExcel={button.exportToExcel}
+                        excelData={button.excelData}
+                        excelFileName={button.excelFileName}
+                        onExportError={button.onExportError}
+                        onExportStart={button.onExportStart}
+                        onExportComplete={button.onExportComplete}
                     >
                         {button.text}
                     </DefaultButton>

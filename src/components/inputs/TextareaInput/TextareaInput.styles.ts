@@ -15,11 +15,12 @@ export const TextAreaWrapper = styled.div<{
 
 export const TextAreaLabel = styled.label<{
   $hasError: boolean;
+  $disabled?: boolean;
 }>`
   font-family: var(--fontfamily);
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.$hasError ? 'var(--error)' : 'var(--color-primary)'};
+  color: ${props => props.$hasError ? 'var(--error)' : (props.$disabled ? 'rgba(38, 48, 69, 0.5)' : 'var(--color-primary)')};
 `;
 
 export const StyledTextArea = styled.textarea<{

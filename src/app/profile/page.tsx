@@ -244,7 +244,7 @@ const ProfilePage: React.FC = () => {
             </Card>
 
             {viewChangePasswordForm && (
-                <ChangePasswordForm gradebook_number={profile.gradebook_number} onClose={() => setViewChangePasswordForm(false)}/>
+                <ChangePasswordForm onClose={() => setViewChangePasswordForm(false)}/>
             )}
         </div>
     );

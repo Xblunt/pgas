@@ -48,7 +48,6 @@ const TextareaInput: React.FC<TextareaInputProps> = (props) => {
       return false;
     }
     
-    // Если ошибка уже была по макс. длине, сбрасываем её
     if (validationError.includes('Максимальная длина')) {
       setValidationError('');
     }
@@ -79,7 +78,6 @@ const TextareaInput: React.FC<TextareaInputProps> = (props) => {
     
     const fieldIsValid = validateField(value);
     
-    // Используем таймаут для дебаунса, как в DefaultInput
     if (changeTimeoutRef.current) {
       clearTimeout(changeTimeoutRef.current);
     }
@@ -94,7 +92,6 @@ const TextareaInput: React.FC<TextareaInputProps> = (props) => {
   const handleBlur = () => {
     setHasBlurred(true);
     
-    // Валидируем поле при потере фокуса
     if (props.required) {
       validateRequired(localValue);
     }
@@ -111,14 +108,12 @@ const TextareaInput: React.FC<TextareaInputProps> = (props) => {
     }
   };
 
-  // Показываем ошибку только если поле было в фокусе и потеряло его
-  // или если передана ошибка извне
   const showError = props.error || (hasBlurred && validationError);
 
   return (
     <TextAreaWrapper className={props.className} $fullWidth={!!props.fullWidth}>
       {props.label && (
-        <TextAreaLabel $hasError={!!showError}>
+        <TextAreaLabel $disabled={props.disabled} $hasError={!!showError}>
           {props.label}
           {props.required && ' *'}
         </TextAreaLabel>

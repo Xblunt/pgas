@@ -44,6 +44,8 @@ export interface DropdownBlockProps {
     readonly?: boolean;
     onView?: (id: string) => void;
     loadingUuid?: string | null;
+    count?: number;
+    hideParentAction?: boolean;
 }
 
 const chevronUpIcon = `
@@ -84,7 +86,7 @@ const menuIcon = `
 `;
 
 const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
-    const count = props.items.length;
+    const count = props.items.length || props.count || 0;
     const isLoading = props.loadingUuid === props.uuid;
 
     const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -100,12 +102,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
     };
 
     const handleToggle = () => {
-        if (props.items.length <= 0 && !props.readonly && props.onAdd) {
-            props.onAdd();
-            return;
-        }
-
-        if (!props.onToggle || props.items.length <= 0) return;
+        if (!props.onToggle) return;
         props.onToggle();
     };
 
@@ -126,12 +123,12 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
                                 +
                             </SquareButton>
 
-                            <IconButton icon={editIcon} size={26} onClick={() => props.onParentEdit && props.onParentEdit(props.uuid)} />
-                            <IconButton icon={trashIcon} size={26} onClick={() => props.onParentDelete && props.onParentDelete(props.uuid)} />
+                            {!props.hideParentAction && <> <IconButton icon={editIcon} size={26} onClick={() => props.onParentEdit && props.onParentEdit(props.uuid)} />
+                            <IconButton icon={trashIcon} size={26} onClick={() => props.onParentDelete && props.onParentDelete(props.uuid)}/> </>}
                         </IconActions>
                     )}
 
-                    {props.items.length > 0 && (
+                    {/* {props.items.length > 0 && ( */}
                         <ChevronButton type="button" onClick={handleChevron}>
                             <span
                                 dangerouslySetInnerHTML={{
@@ -139,7 +136,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
                                 }}
                             />
                         </ChevronButton>
-                    )}
+                    {/* )} */}
                 </GroupActions>
             </GroupHeader>
 
@@ -161,7 +158,7 @@ const DropdownBlock: React.FC<DropdownBlockProps> = (props) => {
                                     </AchievementMain>
 
                                     <AchievementRight>
-                                        <PointsChip>{item.points}б</PointsChip>
+                                        <PointsChip>{item.points}</PointsChip>
 
                                         <TagsContainer>
                                             {item.tags.slice(0, 2).map((t, i) => (

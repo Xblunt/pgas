@@ -23,7 +23,7 @@ const WinnerQuantityForm: React.FC<Props> = (props) => {
     const handleConfirm = () => {
         setLoading(true);
         raitingService.updateWinnerQuantity(quantity)
-            .then(() => props.onClose)
+            .then(() => props.onClose())
             .finally(() => setLoading(false));
     }
 

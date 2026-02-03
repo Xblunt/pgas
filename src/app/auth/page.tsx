@@ -10,10 +10,12 @@ import {
 } from "./page.styles";
 import { User } from "@/models/User";
 import { SignIn } from "@/models/Auth";
-import { ChangePasswordForm, SingInForm, SingUpForm } from "./components";
+import { SingInForm, SingUpForm } from "./components";
 import { useRouter } from "next/navigation";
 import { useStores } from "@/hooks/useStores";
 import { AuthService } from "@/services";
+import { ROOT } from "@/services/axios/ApiClient";
+import { observer } from "mobx-react-lite";
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
@@ -21,7 +23,6 @@ const AuthPage: React.FC = () => {
   const _authService = AuthService.getInstance();
 
   const [isSignUp, setIsSignUp] = useState<boolean>(false);
-  // const [viewChangePasswordForm, setViewChangePasswordForm] = useState<boolean>(false);
 
   const [signInData, setSignInData] = useState<SignIn>({
     email: "",
@@ -40,7 +41,8 @@ const AuthPage: React.FC = () => {
   });
 
   const routeAfterAuth = (access: string) => {
-    router.replace(authStore.isRoot  ? "/admin/raiting" : "/user");
+    const localStorageIsRoot = localStorage.getItem(ROOT) === "true";
+    router.replace(localStorageIsRoot ? "/admin/rating" : "/user");
   };
 
   const handleSignInChange = (field: keyof SignIn, value: string) => {
@@ -83,7 +85,6 @@ const AuthPage: React.FC = () => {
                     loading={authStore.isLoading}
                     onChange={handleSignInChange}
                     onSubmit={handleSignInSubmit}
-                    // onChangePassword={() => setViewChangePasswordForm(true)}
                     onSwitchToSignUp={() => setIsSignUp(true)}
                 />
             ) : (
@@ -97,14 +98,8 @@ const AuthPage: React.FC = () => {
             )}
           </AuthCard>
         </AuthContainer>
-
-        {/* {viewChangePasswordForm && (
-            <ChangePasswordForm
-                onClose={() => setViewChangePasswordForm(false)}
-            />
-        )} */}
       </>
   );
 };
 
-export default AuthPage;
+export default observer(AuthPage);

@@ -1,8 +1,8 @@
 import { HttpClient } from "./axios/HttpClient";
 import { Category, SubCategory } from "@/models/Category";
-import { CategoryStore } from "@/stores";
+import { CategoryStore, UserStore } from "@/stores";
 import Injector from "@/utils/injector";
-import { CATEGORY_STORE } from "@/stores/identifiers";
+import { CATEGORY_STORE, USER_STORE } from "@/stores/identifiers";
 
 class CategoryService extends HttpClient {
   private static instance: CategoryService;
@@ -22,10 +22,10 @@ class CategoryService extends HttpClient {
 
   async getCategories(): Promise<Category[]> {
     this._categoryStore.setLoading(true);
-    return this.get<Category[]>(`/category/parent`)
+    return this.get<any>(`/category/parent`)
     .then((response) => {
-        this._categoryStore.setCategories(response);
-        return response;
+        this._categoryStore.setCategories(response.data);
+        return response.data;
     })
     .catch((error: Error) => {
         console.error(`Error fetch categories:`, error);
@@ -49,7 +49,6 @@ class CategoryService extends HttpClient {
   async createSubCategory(subcategory: SubCategory): Promise<any> {
     return this.post(`/category`, {...subcategory})
     .then((response) => {
-      this.getCategories();
       return response;
     })
     .catch((error: Error) => {
@@ -61,7 +60,6 @@ class CategoryService extends HttpClient {
   async saveCategory(category: Category): Promise<any> {
     return this.put(`/category/${category.uuid}`, {...category})
     .then((response) => {
-        this.getCategories();
         return response;
     })
     .catch((error: Error) => {
@@ -73,7 +71,6 @@ class CategoryService extends HttpClient {
   async saveSubCategory(subcategory: SubCategory): Promise<any> {
     return this.put(`/category/${subcategory.uuid}`, {...subcategory})
     .then((response) => {
-      this.getCategories();
       return response;
     })
     .catch((error: Error) => {
@@ -83,9 +80,9 @@ class CategoryService extends HttpClient {
   }
 
   async getSubCategoriesByParentUuid(uuid: string): Promise<SubCategory[]> {
-    return this.get<SubCategory[]>(`/category/children/${uuid}`)
+    return this.get<any>(`/category/children/${uuid}`)
     .then((response) => {
-        return response;
+        return response.data;
     })
     .catch((error: Error) => {
         console.error(`Error fetch subcategory ${uuid}:`, error);

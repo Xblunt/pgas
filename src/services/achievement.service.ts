@@ -5,6 +5,7 @@ import { ACHIEVEMENT_STORE } from "@/stores/identifiers";
 import { SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
 import { groupAchievementsByCategory } from "@/utils/achievement";
 import { toDottedDate } from "@/utils/date";
+import { Api, ApiArr } from "@/models/types";
 
 class AchievementService extends HttpClient {
     private static instance: AchievementService;
@@ -23,12 +24,13 @@ class AchievementService extends HttpClient {
     }
 
     async getAchievementById(achievementUuid: string): Promise<UpdateAndViewAchievement> {
-        return this.get<UpdateAndViewAchievement>(`/achievement/${achievementUuid}`)
-        .then((achievement: UpdateAndViewAchievement) => {
+        return this.get<any>(`/achievement/${achievementUuid}`)
+        .then((achievement: any) => {
             const params = {
-                ...achievement,
-                achievement_date: toDottedDate(achievement.achievement_date)
+                ...achievement.data,
+                achievement_date: toDottedDate(achievement.data.achievement_date)
             }
+
             return params;
         })
         .catch((error: Error) => {
@@ -38,9 +40,11 @@ class AchievementService extends HttpClient {
     }
 
     async getAchievementsByUserUuid(uuid: string): Promise<UserAchievement[]> {
-        return this.get<SimpleAchievement[]>(`/achievement/by_user_uuid/${uuid}`)
-        .then((achievements: SimpleAchievement[]) => {
-            const groupedAchievements = groupAchievementsByCategory(achievements);
+        return this.get<any>(`/achievement/by_user_uuid/${uuid}`)
+        .then((achievements: any) => {
+            const groupedAchievements = groupAchievementsByCategory(achievements.data);
+
+            this._achivementStore.setAchievements(groupedAchievements);
             return groupedAchievements;
         })
         .catch((error: Error) => {
@@ -50,7 +54,7 @@ class AchievementService extends HttpClient {
     }
     
     async approveAchievement(achievementUuid: string): Promise<any> {
-        return this.get(`achievements/approve/${achievementUuid}`)
+        return this.put(`achievement/approve/${achievementUuid}`)
         .then((response) => {
             return response;
         })
@@ -61,7 +65,7 @@ class AchievementService extends HttpClient {
     }
 
     async rejecteAchievement(achievementUuid: string): Promise<any> {
-        return this.get(`/achievements/decline/${achievementUuid}`)
+        return this.put(`/achievement/decline/${achievementUuid}`)
         .then((response) => {
             return response;
         })

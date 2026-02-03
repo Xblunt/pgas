@@ -155,7 +155,7 @@ const Header: React.FC = observer(() => {
 
   const tabs = [
     { label: "Категории", url: "/admin/category" },
-    { label: "Рейтинг", url: "/admin/raiting" },
+    { label: "Рейтинг", url: "/admin/rating" },
   ];
 
   if (pathname === "/auth") return null;
@@ -262,8 +262,8 @@ const Header: React.FC = observer(() => {
 
             <MobileProfileSection>
               <MobileProfileInfo>
-                <MobileProfileName>Аккаунт</MobileProfileName>
-                <MobileProfileSubtitle>Управление профилем</MobileProfileSubtitle>
+                <MobileProfileName>{username || "Аккаунт"}</MobileProfileName>
+                <MobileProfileSubtitle>{root ? "Администратор" : "Пользователь"}</MobileProfileSubtitle>
               </MobileProfileInfo>
 
               <div className="profile-buttons">

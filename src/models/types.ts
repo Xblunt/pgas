@@ -37,7 +37,7 @@ export type DropdownBlockItem = {
     uuid: string;
     title: string;
     subtitle?: string;
-    points: number;
+    points: number | string;
     tags: string[];
 };
 
@@ -66,4 +66,12 @@ export interface ToastData {
   message: string;
   type: 'success' | 'error';
   duration?: number;
+}
+
+export type Api<T> = {
+    data: T
+}
+
+export type ApiArr<T> = {
+    data: T[]
 }

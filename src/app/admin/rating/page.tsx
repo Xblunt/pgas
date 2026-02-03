@@ -11,12 +11,11 @@ import { useStores } from "@/hooks/useStores";
 import Loader from "@/components/loader";
 import { RaitingService } from "@/services";
 import { User } from "@/models/User";
-import { useToast } from "@/app/ToastProvider";
+import { observer } from "mobx-react-lite";
 
-const AdminRaitingPage: React.FC = () => {
+const AdminRatingPage: React.FC = () => {
     const { raitingStore } = useStores();
     const raitingService = RaitingService.getInstance();
-    const { showToast } = useToast();
 
     const [offset, setOffset] = useState<number>(0);
     const [limit, stLimit] = useState<number>(20);
@@ -37,7 +36,7 @@ const AdminRaitingPage: React.FC = () => {
     }
 
     const handleItemClick = (active: boolean, uuid: string) => {        
-        const actionPromise = active 
+        const actionPromise = !active 
             ? raitingService.unverifyUser(uuid) 
             : raitingService.verifyUser(uuid);
         
@@ -51,6 +50,16 @@ const AdminRaitingPage: React.FC = () => {
         setOffset(newOffset);
     };
 
+    const handleCloseViewUserAchievement = () => {
+        setActiveUser(null);
+        getUsers(searchValue, showArchived, onlyVerified, limit, offset);
+    };
+
+    const handleCloseWinnerQuantityModal = () => {
+        setViewQuantityModal(false);
+        getUsers(searchValue, showArchived, onlyVerified, limit, offset);
+    };
+
     const toolbarButtons: ButtonAction[] = [
         {
             text: "Задать число победителей",
@@ -61,8 +70,7 @@ const AdminRaitingPage: React.FC = () => {
             text: "Отчёт",
             variant: ButtonVariant.PRIMARY,
             exportToExcel: true,
-            excelData: raitingStore.allUsers?.data,
-            onExportError: (message: string) => showToast(message, "error"),
+            excelData: raitingStore.allUsers?.data || [],
         },
     ];
 
@@ -86,13 +94,13 @@ const AdminRaitingPage: React.FC = () => {
     const filterCheckboxes = [
         {
             label: "Только победители",
-            checked: showArchived,
-            onChange: (checked: boolean) => setShowArchived(checked),
+            checked: onlyVerified,
+            onChange: (checked: boolean) => setOnlyVerified(checked),
         },
         {
             label: "Только верифицированные",
-            checked: onlyVerified,
-            onChange: (checked: boolean) => setOnlyVerified(checked),
+            checked: showArchived,
+            onChange: (checked: boolean) => setShowArchived(checked),
         }
     ];
 
@@ -121,9 +129,9 @@ const AdminRaitingPage: React.FC = () => {
                     key={user.uuid} 
                     number={raitingStore.allUsers?.pagination?.offset || 0 + idx + 1} 
                     primaryText={user.name} 
-                    actions={getUsersButtons(user.valid || false, user.uuid || "")} 
+                    actions={getUsersButtons(!!user.valid, user.uuid || "")} 
                     onClick={() => setActiveUser(user)}
-                    tags={user.all_achievement_verified ? ["Все достижения подтверждены"] : undefined}
+                    tags={user.all_achievement_verified ? ["Все достижения проверены"] : undefined}
                 />
             ))}
 
@@ -132,16 +140,16 @@ const AdminRaitingPage: React.FC = () => {
                 limit={raitingStore.allUsers?.pagination?.limit || 20}
                 offset={raitingStore.allUsers?.pagination?.offset || 0}
                 onChange={handlePageChange}
+                onLimitChange={(limit: number) => stLimit(limit)}
                 visiblePages={5}
                 showInfo={true}
             />
 
-            {activeUser && <ViewUserModal onClose={() => setActiveUser(null)} onSelect={(uuid) => setSelectedAchievementUuid(uuid)} name={activeUser.name} uuid={activeUser.uuid || ""} />}
-            {viewQuantityModal && <WinnerQuantityForm onClose={() => setViewQuantityModal(false)} />}
-            {selectedAchievementUuid && <ViewAchievementForm  achievementUuid={selectedAchievementUuid} onClose={() => setSelectedAchievementUuid(null)}/>}
-                
+            {activeUser && <ViewUserModal onClose={handleCloseViewUserAchievement} onSelect={(uuid) => setSelectedAchievementUuid(uuid)} name={activeUser.name} uuid={activeUser.uuid || ""} />}
+            {viewQuantityModal && <WinnerQuantityForm onClose={handleCloseWinnerQuantityModal} />}
+            {selectedAchievementUuid && activeUser && <ViewAchievementForm  userUuid={activeUser.uuid} achievementUuid={selectedAchievementUuid} onClose={() => setSelectedAchievementUuid(null)}/>}
         </div>
     );
 };
 
-export default AdminRaitingPage;
+export default observer(AdminRatingPage);

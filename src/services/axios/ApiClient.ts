@@ -1,8 +1,8 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import type { AuthStore } from "@/stores";
 import Injector from "@/utils/injector";
 import { AUTH_STORE } from "@/stores/identifiers";
-import { extractTokens } from "@/utils/jwt";
+import { decodeJwtPayload, decodeUserName, extractTokens } from "@/utils/jwt";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:9000").replace(/\/+$/, "");
 
@@ -18,11 +18,12 @@ const apiClient = axios.create({
     },
 });
 
-interface ApiErrorShape {
-    status?: number;
-    message: string;
-    data?: any;
-}
+const refreshClient = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
 
 let showToastFunc: (message: string, type: "success" | "error") => void;
 
@@ -49,61 +50,81 @@ const readRefreshFromStorage = () => {
 };
 
 const handleApiError = (error: any) => {
-    const apiError: ApiErrorShape = {
-        message: "Что-то пошло не так",
-        status: error.response?.status,
-        data: error.response?.data,
-    };
+    let errorMessage = "Что-то пошло не так";
 
-    if (error.response) {
-        if (error.response.status === 401) {
-            apiError.message = "Неавторизованный доступ. Пожалуйста, войдите снова.";
-        } else if (error.response.status === 403) {
-            apiError.message = "Доступ запрещен";
-        } else if (error.response.status === 404) {
-            apiError.message = "Ресурс не найден";
-        } else if (error.response.status === 422) {
-            apiError.message = "Некорректные данные";
-        } else if (error.response.status === 500) {
-            apiError.message = "Внутренняя ошибка сервера";
-        } else if (error.response.data?.message) {
-            apiError.message = error.response.data.message;
-        }
-    } else if (error.request) {
-        apiError.message = "Нет ответа от сервера.";
-    } else {
-        apiError.message = error.message || "Что-то пошло не так";
+    if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+    } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+    } else if (error.message) {
+        errorMessage = error.message;
     }
 
     if (showToastFunc) {
-        showToastFunc(apiError.message, "error");
+        showToastFunc(errorMessage, "error");
     }
 
     return Promise.reject(error);
 };
 
 let isRefreshing = false;
-let refreshQueue: Array<(token: string) => void> = [];
+let refreshQueue: Array<{ 
+    resolve: (token: string) => void; 
+    reject: (error: any) => void;
+} > = [];
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
-    refreshQueue.push(cb);
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+    _retry?: boolean;
+    _isRefresh?: boolean;
+}
+
+const subscribeTokenRefresh = (callback: { 
+    resolve: (token: string) => void; 
+    reject: (error: any) => void;
+}) => {
+    refreshQueue.push(callback);
 };
 
 const onRefreshed = (token: string) => {
-    refreshQueue.forEach((cb) => cb(token));
+    refreshQueue.forEach(({ resolve }) => resolve(token));
     refreshQueue = [];
 };
 
+const onRefreshFailed = (error: any) => {
+    refreshQueue.forEach(({ reject }) => reject(error));
+    refreshQueue = [];
+};
+
+const refreshAccessToken = async (refreshToken: string) => {
+    try {
+        const response = await refreshClient.post(
+            "/auth/refresh-token",
+            null,
+            {
+                headers: { 
+                    Authorization: `Bearer ${refreshToken}` 
+                },
+            }
+        );
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
 apiClient.interceptors.request.use(
-    (config) => {
+    (config: ExtendedAxiosRequestConfig) => {
+        if (config._isRefresh) {
+            return config;
+        }
+
         const authStore = safeGetAuthStore();
         const token = authStore?.token || readAccessFromStorage();
 
-        const headers: any = config.headers ?? {};
-        if (!headers.Authorization && token) {
-            headers.Authorization = `Bearer ${token}`;
+        if (token) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
         }
-        config.headers = headers;
 
         return config;
     },
@@ -115,10 +136,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError<any>) => {
-        const originalRequest: any = error.config as any;
+        const originalRequest = error.config as ExtendedAxiosRequestConfig;
         const status = error.response?.status;
 
-        if (!originalRequest || originalRequest._skipRefresh) {
+        if (!originalRequest || originalRequest._isRefresh) {
             return handleApiError(error);
         }
 
@@ -134,18 +155,26 @@ apiClient.interceptors.response.use(
         const refreshToken = authStore?.refreshToken || readRefreshFromStorage();
 
         if (!refreshToken) {
-            authStore?.clearStore?.();
+            authStore?.logout?.();
+            if (showToastFunc) {
+                showToastFunc("Сессия истекла. Пожалуйста, войдите снова", "error");
+            }
             return handleApiError(error);
         }
 
         originalRequest._retry = true;
 
         if (isRefreshing) {
-            return new Promise((resolve) => {
-                subscribeTokenRefresh((newAccessToken) => {
-                    originalRequest.headers = originalRequest.headers ?? {};
-                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                    resolve(apiClient(originalRequest));
+            return new Promise((resolve, reject) => {
+                subscribeTokenRefresh({
+                    resolve: (newToken: string) => {
+                        originalRequest.headers = originalRequest.headers || {};
+                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        resolve(apiClient(originalRequest));
+                    },
+                    reject: (err: any) => {
+                        reject(err);
+                    }
                 });
             });
         }
@@ -153,36 +182,46 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            const resp = await apiClient.post(
-                "/auth/refresh-token",
-                null,
-                {
-                    headers: { Authorization: `Bearer ${refreshToken}` },
-                    ...( { _skipRefresh: true } as any ),
-                } as any
-            );
-
-            const tokens = extractTokens(resp.data);
-            authStore?.setTokens(tokens.accessToken, tokens.refreshToken);
-            authStore?.setRoot(tokens.isRoot)
-
+            const response = await refreshAccessToken(refreshToken);
+            
+            const tokens = extractTokens(response.data);
+            const accessToken = tokens.accessToken;
+            const newRefreshToken = tokens.refreshToken || refreshToken;
+            
+            authStore?.setTokens?.(accessToken, newRefreshToken);
+            
+            const payload = decodeJwtPayload(accessToken);
+            console.log('payload', payload)
             if (!authStore) {
                 if (typeof window !== "undefined") {
-                    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-                    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-                    localStorage.setItem(ROOT, tokens.isRoot);
+                    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+                    localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+                    
+                    if (payload.is_admin !== undefined) {
+                        localStorage.setItem(ROOT, String(payload.is_admin));
+                    }
+                    
+                    const decodedName = decodeUserName(payload.user.name);
+                    
+                    localStorage.setItem(USER_DATA, decodedName);
                 }
             }
 
-            onRefreshed(tokens.accessToken);
-
-            originalRequest.headers = originalRequest.headers ?? {};
-            originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
-
+            onRefreshed(accessToken);
+            
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            
             return apiClient(originalRequest);
-        } catch (e) {
-            authStore?.logout();
-            return handleApiError(e);
+        } catch (refreshError: any) {
+            onRefreshFailed(refreshError);
+            authStore?.logout?.();
+            
+            if (showToastFunc) {
+                showToastFunc("Сессия истекла. Пожалуйста, войдите снова", "error");
+            }
+            
+            return handleApiError(refreshError);
         } finally {
             isRefreshing = false;
         }

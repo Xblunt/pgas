@@ -9,6 +9,7 @@ import { ButtonAction, ButtonVariant, DropdownBlockItem } from "@/models/types";
 import { DropdownBlock } from "@/components/blocks";
 import Toolbar from "@/components/toolbar";
 import { CreateCategoryForm, CreateSubCategoryForm } from "./components";
+import { observer } from "mobx-react-lite";
 
 const AdminCategoryPage: React.FC = () => {
     const { categoryStore } = useStores();
@@ -16,11 +17,13 @@ const AdminCategoryPage: React.FC = () => {
     const [loadingUuid, setLoadingUuid] = useState<string | null>(null);
 
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    
     const [subCategories, setSubCategories] = useState<Map<string, SubCategory[]>>(new Map());
     
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [addingCategory, setAddingCategory] = useState<boolean>(false);
     const [editingSubCategory, setEditingSubCategory] = useState<SubCategory | null>(null);
+    const [editingSubCategoryParentUuid, setEditingSubCategoryParentUuid] = useState<string | null>(null);
     const [addingSubCategory, setAddingSubCategory] = useState<string | null>(null);
 
     useEffect(() => {
@@ -34,13 +37,14 @@ const AdminCategoryPage: React.FC = () => {
     const handleCloseCategoryModal = () => {
         setEditingCategory(null)
         setAddingCategory(false);
+        setExpandedCategory(null);
         loadCategories();
     }
 
     const handleCloseSubCategoryModal = () => {
         setEditingSubCategory(null)
         setAddingSubCategory(null);
-        loadCategories();
+        setEditingSubCategoryParentUuid(null);
     }
 
     const handleToggleCategory = async (categoryUuid: string) => {
@@ -49,10 +53,7 @@ const AdminCategoryPage: React.FC = () => {
             return;
         }
         setExpandedCategory(categoryUuid);
-        
-        if (!subCategories.has(categoryUuid)) {
-            getSubCategories(categoryUuid);
-        }
+        getSubCategories(categoryUuid);
     };
 
     const getSubCategories = async (categoryUuid: string) => {
@@ -79,6 +80,7 @@ const AdminCategoryPage: React.FC = () => {
             const subCategory = categorySubs.find(s => s.uuid === subCategoryUuid);
             if (subCategory) {
                 setEditingSubCategory(subCategory);
+                setEditingSubCategoryParentUuid(categoryUuid);
             }
         }
     };
@@ -103,7 +105,7 @@ const AdminCategoryPage: React.FC = () => {
             uuid: sub.uuid || "",
             title: sub.name,
             subtitle: sub.values?.map(v => v.name).join(", ") || "",
-            points: sub.points || 0,
+            points: sub.values?.map(v => v.points).join("/"),
             tags: [],
         }));
     };
@@ -131,7 +133,9 @@ const AdminCategoryPage: React.FC = () => {
                     <DropdownBlock
                         key={category.uuid}
                         title={category.name}
+                        subtitle={`Баллы: ${category.points}`}
                         uuid={category.uuid || ""}
+                        count={category.subcategories_amount}
                         isOpen={expandedCategory === category.uuid}
                         items={convertToDropdownItems(categorySubs)}
                         onToggle={() => handleToggleCategory(category.uuid || "")}
@@ -145,11 +149,13 @@ const AdminCategoryPage: React.FC = () => {
                 );
             })}
 
-            {(editingCategory || addingCategory) && <CreateCategoryForm category={editingCategory || undefined} onClose={handleCloseCategoryModal}/> }
-            {(editingSubCategory || addingSubCategory) && <CreateSubCategoryForm parent_uuid={addingSubCategory || null} subCategory={editingSubCategory || undefined} onClose={handleCloseSubCategoryModal}/> }
+            {(editingCategory ) && <CreateCategoryForm category={editingCategory} onClose={handleCloseCategoryModal}/> }
+            {(addingCategory) && <CreateCategoryForm onClose={handleCloseCategoryModal}/> }
+            {(addingSubCategory) && <CreateSubCategoryForm parent_uuid={addingSubCategory}  onSuccess={(categoryUuid) => getSubCategories(categoryUuid)} onClose={handleCloseSubCategoryModal}/> }
+            {(editingSubCategory && editingSubCategoryParentUuid) && <CreateSubCategoryForm parent_uuid={editingSubCategoryParentUuid}  subCategory={editingSubCategory} onSuccess={(categoryUuid) => getSubCategories(categoryUuid)} onClose={handleCloseSubCategoryModal}/> }
         
         </div>
     );
 };
 
-export default AdminCategoryPage;
+export default observer(AdminCategoryPage);

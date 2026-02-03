@@ -59,7 +59,7 @@ const DefaultInput = (props: DefaultInputProps) => {
     mask: 'dd.mm.yyyy',
     replacement: {
       d: /[0-3]/,
-      m: /[0-1]/,
+      m: /[0-2]/,
       y: /\d/,
     },
   });
@@ -229,7 +229,7 @@ const DefaultInput = (props: DefaultInputProps) => {
   return (
     <InputWrapper className={props.className} $fullWidth={!!props.fullWidth}>
       {props.label && (
-        <InputLabel $hasError={!!showError}>
+        <InputLabel $hasError={!!showError} $disabled={props.disabled}>
           {props.label}
           {props.required && ' *'}
         </InputLabel>

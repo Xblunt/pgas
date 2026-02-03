@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DefaultInput, NumberInput } from "@/components/inputs";
 import { Category } from "@/models/Category";
 import { CategoryService } from "@/services";
+import { observer } from "mobx-react-lite";
 
 export type Props = {
     category?: Category;
@@ -73,4 +74,4 @@ const CreateCategoryForm: React.FC<Props> = (props) => {
     );
 };
 
-export default CreateCategoryForm;
+export default observer(CreateCategoryForm);

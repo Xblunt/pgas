@@ -21,10 +21,10 @@ class RaitingService extends HttpClient {
     return RaitingService.instance;
   }
 
-  async getAllUsers(search?: string, valid?: boolean, winners?: boolean, limit?: number, offset?: number): Promise<ApiResponse<User[]>> {
+ async getAllUsers(search?: string, valid?: boolean, winners?: boolean, limit?: number, offset?: number): Promise<ApiResponse<User[]>> {
     const params = { search, winners, valid, limit, offset }
     this._raitingStore.setLoading(true);
-    return this.post<ApiResponse<User[]>>(`/raiting`, {...params})
+    return this.post<ApiResponse<User[]>>(`/rating`, {...params})
     .then((response) => {
       this._raitingStore.setUsers(response);
       return response;
@@ -37,10 +37,10 @@ class RaitingService extends HttpClient {
   }
 
   async getWinnerQuantity(): Promise<number> {
-    return this.get<number>(`/constant/grades_amount`)
+    return this.get<any>(`/constant/grades_amount`)
     .then((response) => {
-        this._raitingStore.setWinnerQuantity(response);
-        return response;
+        this._raitingStore.setWinnerQuantity(response.data.constant);
+        return response.data.constant;
     })
     .catch((error: Error) => {
         console.error(`Error get winner quantity`, error);
@@ -49,9 +49,9 @@ class RaitingService extends HttpClient {
   }
 
   async updateWinnerQuantity(value: number): Promise<any> {
-    return this.put<number>(`constant/grades_amount`, { constant: String(value) })
+    return this.put<any>(`constant/grades_amount`, { constant: String(value) })
     .then((response) => {
-        return response;
+        return response.data;
     })
     .catch((error: Error) => {
         console.error(`Error update winner quantity`, error);
@@ -61,8 +61,8 @@ class RaitingService extends HttpClient {
   
   async verifyUser(userUuid: string): Promise<any> {
     return this.put(`/user/approve/${userUuid}`)
-      .then((response) => {
-        return response;
+      .then((response: any) => {
+        return response.data;
       })
       .catch((error: Error) => {
         console.error(`Error approve user ${userUuid}:`, error);
@@ -72,8 +72,8 @@ class RaitingService extends HttpClient {
 
   async unverifyUser(userUuid: string): Promise<any> {
     return this.put(`/user/decline/${userUuid}`)
-      .then((response) => {
-        return response;
+      .then((response: any) => {
+        return response.data;
       })
       .catch((error: Error) => {
         console.error(`Error decline user ${userUuid}:`, error);

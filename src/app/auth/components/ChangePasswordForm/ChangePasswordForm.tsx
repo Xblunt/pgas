@@ -11,11 +11,9 @@ import { useToast } from "@/app/ToastProvider";
 export type ChangePasswordData = {
     newPassword: string;
     confirmPassword: string;
-    gradebook_number?: string;
 };
 
 export type Props = {
-    gradebook_number?: string;
     onClose: () => void;
 };
 
@@ -26,7 +24,6 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
     const [formData, setFormData] = useState<ChangePasswordData>({
         newPassword: '',
         confirmPassword: '',
-        gradebook_number: props.gradebook_number || ''
     });
     const [error, setError] = useState<string>('');
     const [numError, setNumError] = useState<string>('');
@@ -58,19 +55,10 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
                 }));
             }
         }
-        
-        if (field === 'gradebook_number' && numError) {
-            setNumError('');
-        }
     };
 
     const handleSave = async () => {
         if (error || numError) return;
-
-        if (!formData.gradebook_number?.trim()) {
-            setNumError('Заполните номер зачетной книжки');
-            return;
-        }
 
         if (!formData.newPassword.trim() || !formData.confirmPassword.trim()) {
             setError('Заполните оба поля');
@@ -96,7 +84,6 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
     const isSaveDisabled = 
         !!error ||
         !!numError ||
-        !formData.gradebook_number?.trim() ||
         !formData.newPassword.trim() ||
         !formData.confirmPassword.trim() ||
         formData.newPassword !== formData.confirmPassword ||
@@ -125,15 +112,6 @@ const ChangePasswordForm: React.FC<Props> = (props) => {
             ]}
         >
             <div className="form">
-                <DefaultInput
-                    label="Номер зачётной книжки"
-                    value={formData.gradebook_number || ''}
-                    onChange={(value) => handleFieldChange("gradebook_number", value)}
-                    placeholder="Введите номер зачётной книжки"
-                    error={numError}
-                    required={true}
-                    fullWidth
-                />
                 <DefaultInput
                     label="Новый пароль"
                     type="password"

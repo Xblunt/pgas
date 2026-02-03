@@ -17,7 +17,7 @@ const UserPage: React.FC = () => {
     const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({});
     const [loadingAchievement, setLoadingAchievement] = useState<string | null>(null);
     
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [selectedCategoryUuid, setSelectedCategoryUuid] = useState<string | null>(null);
     const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
     const [selectedAchievementUuid, setSelectedAchievementUuid] = useState<string | null>(null);
@@ -86,6 +86,7 @@ const UserPage: React.FC = () => {
                         <DropdownBlock
                             title={item.category_name}
                             uuid={item.category_uuid}
+                            hideParentAction
                             loadingUuid={loadingAchievement}
                             isOpen={!!openUuids[item.category_uuid]}
                             items={transformToDropdownItems(item.achievements)}

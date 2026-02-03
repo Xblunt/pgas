@@ -2,19 +2,22 @@ import { AuthStore, UserStore } from "@/stores";
 import { AUTH_STORE, USER_STORE } from "@/stores/identifiers";
 import Injector from "@/utils/injector";
 import { HttpClient } from "./axios/HttpClient";
-import { groupAchievementsByCategory } from "@/utils/achievement";
+import { categoriesToUserAchievements, groupAchievementsByCategory } from "@/utils/achievement";
 import { CreateAchievement, SimpleAchievement, UpdateAndViewAchievement, UserAchievement } from "@/models/Achievement";
 import { SubCategory } from "@/models/Category";
 import { Position } from "@/models/User";
 import { toRFC3339BirthDate } from "@/utils/date";
+import CategoryService from "./category.service";
 
 class UserService extends HttpClient {
   private static instance: UserService;
   private _userStore: UserStore;
+  private _categoryService: CategoryService;
 
   constructor() {
     super();
     this._userStore = Injector.get<UserStore>(USER_STORE);
+    this._categoryService = CategoryService.getInstance();
   }
 
   static getInstance(): UserService {
@@ -25,28 +28,53 @@ class UserService extends HttpClient {
   }
 
   async getAchievements(): Promise<UserAchievement[]> {
-    this._userStore.setLoading(true);
-    return this.get<SimpleAchievement[]>('/achievement/by_token')
-      .then((achievements: SimpleAchievement[]) => {
-        const groupedAchievements = groupAchievementsByCategory(achievements);
-        
-        this._userStore.setAchievements(groupedAchievements);
-        
-        return groupedAchievements;
-      })
-      .catch((error: Error) => {
-        console.error('Error fetching achievements:', error);
-        throw error;
-      })
-      .finally(() => this._userStore.setLoading(false));
+      this._userStore.setLoading(true);
+      
+      try {
+          const achievementsResponse = await this.get<any>('/achievement/by_token');
+          const achievementsArray = achievementsResponse.data?.data || achievementsResponse.data || [];
+          const groupedAchievements = groupAchievementsByCategory(achievementsArray);
+          
+          const categoriesResponse = await this._categoryService.getCategories();
+          const categoriesByUser = categoriesToUserAchievements(categoriesResponse);
+          
+          let allAchievements: UserAchievement[] = [];
+          
+          if (groupedAchievements.length === 0) {
+              allAchievements = categoriesByUser;
+          } else {
+              const existingUuids = new Set(
+                  groupedAchievements.map(item => item.category_uuid)
+              );
+              
+              allAchievements = [...groupedAchievements];
+              
+              categoriesByUser.forEach(category => {
+                  if (!existingUuids.has(category.category_uuid)) {
+                      allAchievements.push(category);
+                  }
+              });
+          }
+                  
+          this._userStore.setAchievements(allAchievements);
+          
+          return allAchievements;
+          
+      } catch (error: any) {
+          console.error('Error fetching achievements:', error);
+          throw error;
+      } finally {
+          this._userStore.setLoading(false);
+      }
   }
+
 
   async getUserPosition(): Promise<Position> {
     this._userStore.setLoading(true);
-    return this.get<Position>('/rating/short_info')
-      .then((position: Position) => {
-        this._userStore.setPosition(position);
-        return position;
+    return this.get<any>('/rating/short_info')
+      .then((position: any) => {
+        this._userStore.setPosition(position.data);
+        return position.data;
       })
       .catch((error: Error) => {
         console.error('Error fetching achievements:', error);
@@ -56,9 +84,9 @@ class UserService extends HttpClient {
   }
 
   async getSubcategoriesByParent(parentCategoryUuid: string): Promise<SubCategory[]> {
-    return this.get<SubCategory[]>(`/category/children/${parentCategoryUuid}`)
-      .then((subcategories: SubCategory[]) => {
-        return subcategories;
+    return this.get<any>(`/category/children/${parentCategoryUuid}`)
+      .then((subcategories: any) => {
+        return subcategories.data;
       })
       .catch((error: Error) => {
         console.error(`Error fetching subcategories for category ${parentCategoryUuid}:`, error);

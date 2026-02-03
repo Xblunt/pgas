@@ -1,7 +1,7 @@
 "use client"
 
-import React from 'react';
-import { PaginationContainer, PagesContainer, PageButton, Ellipsis, PageInfo } from './Pagination.styles';
+import React, { useState, useEffect } from 'react';
+import { PaginationContainer, PagesContainer, PageButton, Ellipsis, PageInfo, LimitSelectContainer, LimitSelect, LimitLabel, LimitInput } from './Pagination.styles';
 import { IconButton } from '../buttons';
 
 export interface PaginationProps {
@@ -9,12 +9,15 @@ export interface PaginationProps {
   limit: number;
   offset: number;
   onChange: (offset: number) => void;
+  onLimitChange?: (limit: number) => void;
   visiblePages?: number;
   prevIcon?: string;
   nextIcon?: string;
   className?: string;
   disabled?: boolean;
   showInfo?: boolean;
+  showLimitSelect?: boolean;
+  limitOptions?: number[];
 }
 
 const Pagination: React.FC<PaginationProps> = (props) => {
@@ -23,8 +26,15 @@ const Pagination: React.FC<PaginationProps> = (props) => {
   const visiblePages = props.visiblePages || 5;
   const disabled = props.disabled || false;
   const showInfo = props.showInfo || false;
+  const showLimitSelect = props.showLimitSelect || true;
+  
+  const [limitInput, setLimitInput] = useState<string>(String(props.limit));
 
-  if (totalPages <= 1) {
+  useEffect(() => {
+    setLimitInput(String(props.limit));
+  }, [props.limit]);
+
+  if (totalPages <= 1 && !showLimitSelect) {
     return null;
   }
 
@@ -44,6 +54,53 @@ const Pagination: React.FC<PaginationProps> = (props) => {
     if (currentPage >= totalPages || disabled) return;
     const newOffset = props.offset + props.limit;
     props.onChange(Math.min(newOffset, (totalPages - 1) * props.limit));
+  };
+
+  const handleLimitSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!props.onLimitChange) return;
+    const newLimit = parseInt(e.target.value, 10);
+    if (isNaN(newLimit) || newLimit <= 0) return;
+    
+    const newOffset = Math.floor(props.offset / newLimit) * newLimit;
+    props.onLimitChange(newLimit);
+    props.onChange(newOffset);
+  };
+
+  const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) {
+      setLimitInput(value);
+    } else {
+      setLimitInput(String(props.limit));
+    }
+  };
+
+  const handleLimitInputBlur = () => {
+    if (!props.onLimitChange) return;
+    
+    const newLimit = parseInt(limitInput, 10);
+    if (isNaN(newLimit) || newLimit <= 0) {
+      setLimitInput(String(props.limit));
+      return;
+    }
+
+    const newOffset = Math.floor(props.offset / newLimit) * newLimit;
+    props.onLimitChange(newLimit);
+    props.onChange(newOffset);
+  };
+
+  const handleLimitInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && props.onLimitChange) {
+      const newLimit = parseInt(limitInput, 10);
+      if (isNaN(newLimit) || newLimit <= 0) {
+        setLimitInput(String(props.limit));
+        return;
+      }
+
+      const newOffset = Math.floor(props.offset / newLimit) * newLimit;
+      props.onLimitChange(newLimit);
+      props.onChange(newOffset);
+    }
   };
 
   const getPageNumbers = () => {
@@ -127,6 +184,19 @@ const Pagination: React.FC<PaginationProps> = (props) => {
         disabled={currentPage >= totalPages || disabled}
         size={32}
       />
+
+            {showLimitSelect && props.onLimitChange && (
+        <LimitSelectContainer>
+          <LimitInput
+            type="text"
+            value={limitInput}
+            onChange={handleLimitInputChange}
+            onBlur={handleLimitInputBlur}
+            onKeyDown={handleLimitInputKeyDown}
+            disabled={disabled}
+          />
+        </LimitSelectContainer>
+      )}
     </PaginationContainer>
   );
 };

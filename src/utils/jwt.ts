@@ -31,13 +31,38 @@ export const  extractTokens = (payload: any) =>  {
         payload?.refreshToken ??
         payload?.RefreshToken;
 
-    const isRoot =
-        root?.isRoot ??
-        payload?.isRoot;
-
     if (!accessToken || !refreshToken) {
       throw new Error("Не удалось получить токены из ответа сервера");
     }
 
-    return { accessToken, refreshToken, isRoot };
+    return { accessToken, refreshToken };
   }
+export const decodeUserName = (userName: string): string => {
+    if (!userName || typeof userName !== 'string') {
+        return 'User';
+    }
+    
+    if (/Ð|Ñ|Ð|Ñ/.test(userName)) {
+        try {
+            const bytes = new Uint8Array(userName.length);
+            for (let i = 0; i < userName.length; i++) {
+                bytes[i] = userName.charCodeAt(i);
+            }
+            const decoded = new TextDecoder('utf-8').decode(bytes);
+            
+            if (!/Ð|Ñ|Ð|Ñ/.test(decoded)) {
+                return decoded;
+            }
+            
+            const encoder = new TextEncoder();
+            const decoder = new TextDecoder('utf-8');
+            const encoded = encoder.encode(userName);
+            return decoder.decode(encoded);
+            
+        } catch (error) {
+            return userName;
+        }
+    }
+    
+    return userName;
+};

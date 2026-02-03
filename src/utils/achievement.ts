@@ -35,3 +35,12 @@ export function transformToDropdownItems (achievements: any[]): any[] {
         ]
     }));
 }
+
+export function categoriesToUserAchievements(categories: any[]): any[] {
+    return categories.map(category => ({
+        category_name: category.name,
+        category_uuid: category.uuid || '',
+        achievementQuantity: 0,
+        achievements: []
+    }));
+}

@@ -84,6 +84,7 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
     subcategoriesData
   ]);
 
+  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -116,10 +117,18 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
           setSelectedSubcategoryPoints(selectedPoints);
           setTotalPoints(total);
           
-          if (data.category.uuid) {
-            const subcats = await userService.getSubcategoriesByParent(data.category.uuid);
-            setSubcategoriesData(subcats);
-          }
+          const transformedSubcategories: SubCategory[] = data.subcategories.map(sub => ({
+            uuid: sub.uuid,
+            name: sub.name,
+            points: sub.points,
+            parent_uuid: data.category.uuid,
+            values: sub.available_values.map((value, index) => ({
+                name: value,
+                points: sub.points || 0,
+            }))
+        }));
+
+          setSubcategoriesData(transformedSubcategories);
           
         } else if (props.categoryUuid && props.categoryName) {
           setIsCreating(true);
@@ -336,15 +345,15 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
           disabled
         />
 
-        {renderDynamicSubcategories()}
-
         <DefaultInput
-          label="Сумма баллов"
+          label="Сумма баллов до пересчёта"
           value={String(totalPoints)}
           onChange={() => {}}
           fullWidth
           disabled
         />
+
+        {renderDynamicSubcategories()}
 
         <DefaultInput
           label="Ссылка на документы"

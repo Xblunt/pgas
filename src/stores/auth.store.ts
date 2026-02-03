@@ -1,10 +1,10 @@
 import { makeAutoObservable } from "mobx";
 import type RootStore from "./root.store";
-import { ROOT, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/services/axios/ApiClient";
+import { ROOT, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_DATA } from "@/services/axios/ApiClient";
+import { decodeJwtPayload, decodeUserName } from "@/utils/jwt";
 
 class AuthStore {
   private _rootStore: RootStore;
-  private _isRoot: boolean = false;
 
   private _token: string = "";
   private _refreshToken: string = "";
@@ -17,10 +17,6 @@ class AuthStore {
 
   get token() {
     return this._token;
-  }
-
-  get isRoot() {
-    return this._isRoot;
   }
 
   get refreshToken() {
@@ -40,19 +36,15 @@ class AuthStore {
     this._isLoading = loading;
   };
 
-  setRoot = (isRoot: boolean) => {
-    this._isRoot = isRoot;
-    if (typeof window !== "undefined") { 
-      localStorage.setItem(ROOT, this._token);
-    }
-    
-  };
-
   setToken = (token?: string) => {
     this._token = token || "";
     if (typeof window !== "undefined") {
       if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token);
-      else localStorage.removeItem(ACCESS_TOKEN_KEY);
+      else {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(ROOT);
+        localStorage.removeItem(USER_DATA);
+      }
     }
   };
 
@@ -60,20 +52,39 @@ class AuthStore {
     this._refreshToken = token || "";
     if (typeof window !== "undefined") {
       if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
-      else localStorage.removeItem(REFRESH_TOKEN_KEY);
+      else {
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
+    }
+  };
+
+  setUserDataToken = (data?: string) => {
+    if (typeof window !== "undefined") {
+      if(data) localStorage.setItem(USER_DATA, data);
+    }
+  };
+
+  setIsAdmin = (data?: boolean) => {
+    if (typeof window !== "undefined") {
+      if (data !== undefined) {
+        localStorage.setItem(ROOT, String(data));
+      }
     }
   };
 
   setTokens = (accessToken: string, refreshToken: string) => {
     this.setToken(accessToken);
     this.setRefreshToken(refreshToken);
+    const payload = decodeJwtPayload(accessToken)
+    const decodedName = decodeUserName(payload.user.name);
+    this.setUserDataToken(decodedName);
+    this.setIsAdmin(payload.is_admin);
   };
 
   clearStore = () => {
     this._token = "";
     this._refreshToken = "";
     this._isLoading = false;
-    this._isRoot = false;
 
     if (typeof window !== "undefined") {
       localStorage.removeItem(ACCESS_TOKEN_KEY);

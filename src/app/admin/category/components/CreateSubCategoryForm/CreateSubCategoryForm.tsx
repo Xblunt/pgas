@@ -6,11 +6,13 @@ import { DefaultInput } from "@/components/inputs";
 import Score from "@/components/score";
 import { SubCategory } from "@/models/Category";
 import { CategoryService } from "@/services";
+import { observer } from "mobx-react-lite";
 
 export type Props = {
     subCategory?: SubCategory;
     parent_uuid?: string | null;
     onClose: () => void;
+    onSuccess: (categoryUuid: string) => void;
 };
 
 const CreateSubCategoryForm: React.FC<Props> = (props) => {
@@ -47,6 +49,7 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
         
         savePromise
             .then(() => {
+                props.onSuccess(props.parent_uuid || '');
                 props.onClose();
             })
             .finally(() => {
@@ -85,4 +88,4 @@ const CreateSubCategoryForm: React.FC<Props> = (props) => {
     );
 };
 
-export default CreateSubCategoryForm;
+export default observer(CreateSubCategoryForm);

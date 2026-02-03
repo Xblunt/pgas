@@ -1,5 +1,6 @@
 import React from "react";
-import * as XLSX from "xlsx";
+import * as ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import { StyledButton } from "./DefaultButton.styles";
 import { ButtonSize, ButtonType, ButtonVariant } from "@/models/types";
 import { User } from "@/models/User";
@@ -22,8 +23,13 @@ export interface DefaultButtonProps {
 }
 
 const DefaultButton: React.FC<DefaultButtonProps> = (props) => {
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (props.exportToExcel && props.excelData) {
+      await handleExportToExcel();
+      return;
+    }
+
+    if (props.exportToExcel) {
       handleExportToExcel();
     }
     
@@ -31,7 +37,7 @@ const DefaultButton: React.FC<DefaultButtonProps> = (props) => {
     props.onClick(e);
   };
 
-  const handleExportToExcel = () => {
+  const handleExportToExcel = async () => {
     if (!props.excelData || props.excelData.length === 0) {
       props.onExportError?.("Нет данных для экспорта");
       return;
@@ -40,36 +46,51 @@ const DefaultButton: React.FC<DefaultButtonProps> = (props) => {
     try {
       props.onExportStart?.();
 
-      const dataToExport = props.excelData.map(user => ({
-        "Имя": user.name,
-        "Фамилия": user.second_name,
-        "Отчество": user.patronymic,
-        "№ зачетной книжки": user.gradebook_number,
-        "Дата рождения": formatDate(user.birth_date),
-        "Email": user.email,
-        "Телефон": user.phone_number,
-        "Верицирован": user.valid ? "Да" : "Нет"
-      }));
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Приложение";
+      workbook.created = new Date();
 
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Пользователи");
+      const worksheet = workbook.addWorksheet("Пользователи");
 
-      const wscols = [
-        { wch: 15 }, // Имя
-        { wch: 20 }, // Фамилия
-        { wch: 20 }, // Отчество
-        { wch: 20 }, // № зачетной книжки
-        { wch: 15 }, // Дата рождения
-        { wch: 25 }, // Email
-        { wch: 15 }, // Телефон
-        { wch: 12 }  // Верицирован
+      worksheet.columns = [
+        { header: "Имя", key: "name", width: 15 },
+        { header: "Фамилия", key: "second_name", width: 20 },
+        { header: "Отчество", key: "patronymic", width: 20 },
+        { header: "№ зачетной книжки", key: "gradebook_number", width: 20 },
+        { header: "Дата рождения", key: "birth_date", width: 15 },
+        { header: "Email", key: "email", width: 25 },
+        { header: "Телефон", key: "phone_number", width: 15 },
+        { header: "Верифицирован", key: "valid", width: 12 }
       ];
-      ws['!cols'] = wscols;
 
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+
+      props.excelData.forEach(user => {
+        worksheet.addRow({
+          name: user.name,
+          second_name: user.second_name,
+          patronymic: user.patronymic,
+          gradebook_number: user.gradebook_number,
+          birth_date: formatDate(user.birth_date),
+          email: user.email,
+          phone_number: user.phone_number,
+          valid: user.valid ? "Да" : "Нет"
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
       const fileName = `${props.excelFileName || 'Отчёт'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      
-      XLSX.writeFile(wb, fileName);
+      const blob = new Blob([buffer], { 
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+      });
+
+      saveAs(blob, fileName);
       
       props.onExportComplete?.(fileName);
     } catch (error) {

@@ -25,13 +25,13 @@ class ProfileService extends HttpClient {
   getProfile(): Promise<User> {
     this._profileStore.setLoading(true);
     
-    return this.get<User>("/user/me")
+    return this.get<any>("/user/me")
       .then(response => {
 
-        const birth_date = toDottedDate(response.birth_date);
+        const birth_date = toDottedDate(response.data.birth_date);
 
         const profile ={ 
-          ...response,
+          ...response.data,
           birth_date
         }
 

@@ -65,3 +65,68 @@ export const PageInfo = styled.span`
   color: var(--color-primary);
   margin-right: 12px;
 `;
+
+export const LimitSelectContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+`;
+
+export const LimitLabel = styled.span`
+  font-family: var(--fontfamily);
+  font-size: 14px;
+  color: var(--color-primary);
+  white-space: nowrap;
+`;
+
+export const LimitSelect = styled.select`
+  font-family: var(--fontfamily);
+  font-size: 14px;
+  color: var(--color-primary);
+  background: var(--color-white);
+  border: 1px solid var(--color-primary-light);
+  border-radius: 4px;
+  padding: 6px 10px;
+  height: 32px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(38, 48, 69, 0.1);
+  }
+`;
+
+export const LimitInput = styled.input`
+  font-family: var(--fontfamily);
+  font-size: 14px;
+  color: var(--color-primary);
+  background: var(--color-white);
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  padding: 6px 10px;
+  height: 32px;
+  width: 60px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;

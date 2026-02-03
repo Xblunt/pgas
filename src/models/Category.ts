@@ -4,6 +4,7 @@ export interface Category {
     uuid?: string;
     name: string;
     points: number;
+    subcategories_amount?: number
 }
 
 export interface SubCategory {

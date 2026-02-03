@@ -1,13 +1,15 @@
 import { AchievementsBlock, DividerSpace } from "@/app/user/page.styles";
 import { DropdownBlock } from "@/components/blocks";
 import Modal from "@/components/modal";
-import { ButtonVariant, DropdownBlockItem } from "@/models/types";
+import { ButtonVariant } from "@/models/types";
 import React from "react";
 import { useEffect, useState } from "react";
 import { Quantity } from "./ViewUserModal.styles";
 import { AchievementService } from "@/services";
-import { SimpleAchievement, UserAchievement } from "@/models/Achievement";
+import { SimpleAchievement } from "@/models/Achievement";
 import { transformToDropdownItems } from "@/utils/achievement";
+import { useStores } from "@/hooks/useStores";
+import { observer } from "mobx-react-lite";
 
 export type Props = {
     uuid: string;
@@ -17,21 +19,20 @@ export type Props = {
 };
 
 const ViewUserModal: React.FC<Props> = (props) => {
+    const {achievementStore} = useStores();
     const achievemntService = AchievementService.getInstance();
     const [loading, setLoading] = useState<boolean>(false)
-    const [data, setData] = useState<UserAchievement[]>([])
     const [openUuids, setOpenUuids] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         setLoading(true);
         achievemntService.getAchievementsByUserUuid(props.uuid)
-            .then((response) => setData(response))
             .finally(() => setLoading(false));
     }, [props.uuid]);
 
     const calculateTotalPoints = () => {
         let total = 0;
-        data.forEach(item => {
+        achievementStore.achievements.forEach(item => {
             item.achievements.forEach((item: SimpleAchievement) => {
                 total += item.point_amount || 0;
             });
@@ -56,7 +57,7 @@ const ViewUserModal: React.FC<Props> = (props) => {
             ]}
         >
             <AchievementsBlock>
-                {data.map((item, idx) => (
+                {achievementStore.achievements.map((item, idx) => (
                     <React.Fragment key={item.category_uuid}>
                         <DropdownBlock
                             title={item.category_name}
@@ -67,7 +68,7 @@ const ViewUserModal: React.FC<Props> = (props) => {
                             onView={(uuid) => props.onSelect(uuid)}
                             readonly
                         />
-                        {idx < data.length - 1 && <DividerSpace />}
+                        {idx < achievementStore.achievements.length - 1 && <DividerSpace />}
                     </React.Fragment>
                 ))}
             </AchievementsBlock>
@@ -78,4 +79,4 @@ const ViewUserModal: React.FC<Props> = (props) => {
     );
 };
 
-export default ViewUserModal;
+export default observer(ViewUserModal);

@@ -6,6 +6,7 @@ import { extractTokens } from "@/utils/jwt";
 import { toRFC3339BirthDate } from "@/utils/date";
 import { SignIn, Tokens } from "@/models/Auth";
 import { User } from "@/models/User";
+import { Api } from "@/models/types";
 
 class AuthService extends HttpClient {
   private static instance: AuthService;
@@ -26,10 +27,9 @@ class AuthService extends HttpClient {
   signIn(creds: SignIn): Promise<Tokens> {
     this._authStore.setLoading(true);
     
-    return this.post<any>("/auth/signin", { ...creds })
+    return this.post<Api<Tokens>>("/auth/signin", { ...creds })
       .then(payload => {
-        const tokens = extractTokens(payload);
-        this._authStore.setRoot(tokens.isRoot)
+        const tokens = extractTokens(payload.data);
         this._authStore.setTokens(tokens.accessToken, tokens.refreshToken);
         return tokens;
       })
@@ -50,10 +50,9 @@ class AuthService extends HttpClient {
       birth_date: toRFC3339BirthDate(data?.birth_date),
     };
 
-    return this.post<any>("/auth/signup", payloadToSend)
+    return this.post<Api<Tokens>>("/auth/signup", payloadToSend)
       .then(payload => {
-        const tokens = extractTokens(payload);
-        this._authStore.setRoot(tokens.isRoot)
+        const tokens = extractTokens(payload.data);
         this._authStore.setTokens(tokens.accessToken, tokens.refreshToken);
         return tokens;
       })
@@ -79,8 +78,7 @@ class AuthService extends HttpClient {
       { headers: { Authorization: `Bearer ${refreshToken}` } }
     )
       .then(payload => {
-        const tokens = extractTokens(payload);
-        this._authStore.setRoot(tokens.isRoot)
+        const tokens = extractTokens(payload.data);
         this._authStore.setTokens(tokens.accessToken, tokens.refreshToken);
         return tokens;
       })
@@ -95,7 +93,7 @@ class AuthService extends HttpClient {
 
     return this.post<any>("/auth/change-password", { password })
       .then((response) => {
-         return response;
+         return response.data;
       })
       .catch(error => {
         console.error("Error changing password:", error);
