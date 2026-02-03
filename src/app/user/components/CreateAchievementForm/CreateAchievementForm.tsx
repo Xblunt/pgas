@@ -145,7 +145,6 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
           setSelectedSubcategoryPoints(initialPoints);
           setTotalPoints(total);
           
-          // В режиме создания устанавливаем начальные значения валидации
           setAttachmentLinkValid(false);
           setCommentValid(false);
           setAchievementDateValid(false);
@@ -187,19 +186,16 @@ const CreateAchievementForm: React.FC<CreateAchievementFormProps> = (props) => {
   const handleAttachmentLinkChange = (value: string, isValid: boolean) => {
     setAttachmentLink(value);
     setAttachmentLinkValid(isValid);
-    setAttachmentLinkError(isValid ? "" : "Это поле обязательно");
   };
 
   const handleDateChange = (value: string, isValid: boolean) => {
     setAchievementDate(value);
     setAchievementDateValid(isValid);
-    setAchievementDateError(isValid ? "" : "Дата должна быть в формате dd.mm.yyyy");
   };
 
   const handleCommentChange = (value: string, isValid: boolean) => {
     setComment(value);
     setCommentValid(isValid);
-    setCommentError(isValid ? "" : "Это поле обязательно");
   };
 
   const prepareSaveData = (): CreateAchievement => {
