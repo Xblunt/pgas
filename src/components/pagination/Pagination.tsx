@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { PaginationContainer, PagesContainer, PageButton, Ellipsis, PageInfo, LimitSelectContainer, LimitSelect, LimitLabel, LimitInput } from './Pagination.styles';
+import { PaginationContainer, PagesContainer, Ellipsis, PageInfo, LimitSelectContainer, PageButton, LimitInput } from './Pagination.styles';
 import { IconButton } from '../buttons';
 
 export interface PaginationProps {
@@ -26,17 +26,13 @@ const Pagination: React.FC<PaginationProps> = (props) => {
   const visiblePages = props.visiblePages || 5;
   const disabled = props.disabled || false;
   const showInfo = props.showInfo || false;
-  const showLimitSelect = props.showLimitSelect || true;
+  const showLimitSelect = props.showLimitSelect !== false; // Всегда показываем, если не указано false
   
   const [limitInput, setLimitInput] = useState<string>(String(props.limit));
 
   useEffect(() => {
     setLimitInput(String(props.limit));
   }, [props.limit]);
-
-  if (totalPages <= 1 && !showLimitSelect) {
-    return null;
-  }
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages || page === currentPage || disabled) return;
@@ -104,6 +100,10 @@ const Pagination: React.FC<PaginationProps> = (props) => {
   };
 
   const getPageNumbers = () => {
+    if (totalPages <= 1) {
+      return [1];
+    }
+    
     let startPage = Math.max(1, currentPage - Math.floor(visiblePages / 2));
     let endPage = Math.min(totalPages, startPage + visiblePages - 1);
 
@@ -185,7 +185,7 @@ const Pagination: React.FC<PaginationProps> = (props) => {
         size={32}
       />
 
-            {showLimitSelect && props.onLimitChange && (
+      {showLimitSelect && props.onLimitChange && (
         <LimitSelectContainer>
           <LimitInput
             type="text"
