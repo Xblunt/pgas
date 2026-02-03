@@ -127,7 +127,7 @@ const AdminRatingPage: React.FC = () => {
             {raitingStore.allUsers?.data.map((user, idx) => (
                 <DefaultBlock 
                     key={user.uuid} 
-                    number={raitingStore.allUsers?.pagination?.offset || 0 + idx + 1} 
+                    number={((raitingStore.allUsers?.pagination?.offset || 0) + idx + 1)}
                     primaryText={user.name} 
                     actions={getUsersButtons(!!user.valid, user.uuid || "")} 
                     onClick={() => setActiveUser(user)}
